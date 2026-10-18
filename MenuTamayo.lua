@@ -19,7 +19,7 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -45, 0, 35); Title.Position = UDim2.new(0, 12, 0, 0); Title.BackgroundTransparency = 1
-Title.Text = "🔮 Menu Tamayo v12.1"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "🔮 Menu Tamayo v12.2"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold; Title.TextSize = 14; Title.TextXAlignment = Enum.TextXAlignment.Left; Title.Parent = MainFrame
 
 local MinimizeButton = Instance.new("TextButton")
@@ -65,21 +65,28 @@ CriarAba("Pets", 70, PetsPage, "Pets")
 CriarAba("Combat", 140, CombatPage, "Combat")
 CriarAba("Spin", 210, SpinPage, "Spin")
 
--- === SISTEMA ANTI-RESET DE VELOCIDADE ===
+-- === SISTEMA ANTI-RESET DE VELOCIDADE (MÉTODO INFALÍVEL PARA PC) ===
 local SpeedEnabled = true 
 local TargetSpeed = 16 
 
-RunService.Heartbeat:Connect(function()
-    if SpeedEnabled then
-        local char = Players.LocalPlayer.Character
-        if char and char:FindFirstChild("Humanoid") then
-            if char.Humanoid.WalkSpeed ~= TargetSpeed then
-                char.Humanoid.WalkSpeed = TargetSpeed
+-- Função que monitora se o jogo tentar mudar a velocidade
+local function MonitorarVelocidade(char)
+    local humanoid = char:WaitForChild("Humanoid", 5)
+    if humanoid then
+        humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+            -- Se o hack estiver ligado e o jogo tentar mudar a velocidade, força o valor de volta
+            if SpeedEnabled and humanoid.WalkSpeed ~= TargetSpeed then
+                humanoid.WalkSpeed = TargetSpeed
             end
-        end
+        end)
     end
-end)
+end
 
+-- Aplica o monitor no personagem atual e em futuros (quando morrer e renascer)
+if Players.LocalPlayer.Character then MonitorarVelocidade(Players.LocalPlayer.Character) end
+Players.LocalPlayer.CharacterAdded:Connect(MonitorarVelocidade)
+
+-- Interface do Slider
 local SpeedFrame = Instance.new("Frame")
 SpeedFrame.Size = UDim2.new(1, 0, 0, 55); SpeedFrame.Position = UDim2.new(0, 0, 0, 0)
 SpeedFrame.BackgroundColor3 = Color3.fromRGB(45, 38, 52); SpeedFrame.BorderSizePixel = 0; SpeedFrame.Parent = CombatPage
@@ -174,14 +181,14 @@ local function CriarBotao(nome, pos, pag, funcaoLoop)
                 while LoopsAtivos[nome] do
                     local sucesso, erro = pcall(funcaoLoop)
                     if not sucesso then warn("["..nome.."] Erro: "..tostring(erro)) end
-                    task.wait(0.5) -- Mais devagar para não bugar a tela
+                    task.wait(0.1) -- Loop rápido para o combate
                 end
             end)
         end
     end)
 end
 
--- === FUNÇÕES DO JOGO ===
+-- === FUNÇÕES DO JOGO (AGORA SEPARADAS) ===
 local function LoopSpin()
     local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
     if RemoteEvents and RemoteEvents:FindFirstChild("Roulette") then RemoteEvents.Roulette:FireServer(true) end
@@ -192,14 +199,30 @@ local function LoopUpgradePet()
     if RemoteFunc then RemoteFunc:InvokeServer({{PetId = 1, Version = 15910, Level = 0}}) end
 end
 
-local function LoopCombat()
+-- 1. FUNÇÃO SÓ DE ATAQUE BÁSICO (FAST ATTACK)
+local function LoopFastAttack()
     local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
     if RemoteEvents then
-        local GeneralAttack, SkillAttack = RemoteEvents:FindFirstChild("GeneralAttack"), RemoteEvents:FindFirstChild("SkillAttack")
+        local GeneralAttack = RemoteEvents:FindFirstChild("GeneralAttack")
         if GeneralAttack then 
-            for i = 1, 4 do GeneralAttack:FireServer(i); task.wait(0.05) end
+            for i = 1, 4 do 
+                GeneralAttack:FireServer(i)
+                task.wait(0.05) 
+            end
         end
-        if SkillAttack then SkillAttack:FireServer(3); SkillAttack:FireServer(4) end
+    end
+end
+
+-- 2. FUNÇÃO SÓ DE SKILLS (AUTO SKILLS)
+local function LoopAutoSkills()
+    local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
+    if RemoteEvents then
+        local SkillAttack = RemoteEvents:FindFirstChild("SkillAttack")
+        if SkillAttack then 
+            SkillAttack:FireServer(3)
+            task.wait(0.1)
+            SkillAttack:FireServer(4) 
+        end
     end
 end
 
@@ -217,11 +240,9 @@ local function LoopTrainFarm()
     local char = Players.LocalPlayer.Character
     if not char or not char:FindFirstChild("HumanoidRootPart") then return end
 
-    -- 1. Verifica se tem algum inimigo vivo no mapa (Workspace)
     local temInimigoVivo = false
     for _, obj in pairs(workspace:GetChildren()) do
         if obj:IsA("Model") and obj:FindFirstChild("Humanoid") and obj.Humanoid.Health > 0 then
-            -- Se não for o nosso próprio personagem, é um inimigo vivo.
             if obj ~= char then
                 temInimigoVivo = true
                 break
@@ -229,10 +250,9 @@ local function LoopTrainFarm()
         end
     end
 
-    -- 2. Se o inimigo estiver morto (ou não tiver ninguém), avança!
     if not temInimigoVivo then
         char.HumanoidRootPart.CFrame = CFrame.new(-1009.036, -1952.459, -173.605)
-        task.wait(0.3) -- Espera um tiquinho para o servidor registrar a posição
+        task.wait(0.3)
 
         local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
         if RemoteEvents then
@@ -243,18 +263,17 @@ local function LoopTrainFarm()
             end
         end
     else
-        -- Se o inimigo estiver vivo, só avisa no console e espera
         print("[Train Farm] Inimigo vivo. Lutando...")
     end
 end
-
 
 -- === PREENCHENDO OS BOTÕES ===
 CriarBotao("Auto Train Farm Kill", 5, AutoFarmPage, LoopTrainFarm) 
 CriarBotao("Auto Farm Kill (Visual)", 48, AutoFarmPage, nil)
 
-CriarBotao("Fast Attack + Skills", 65, CombatPage, LoopCombat)
-CriarBotao("Auto Skills", 108, CombatPage, LoopCombat)
+-- Botões separados na aba Combat
+CriarBotao("Fast Attack (Apenas Combos)", 65, CombatPage, LoopFastAttack)
+CriarBotao("Auto Skills (Apenas Skills)", 108, CombatPage, LoopAutoSkills)
 
 CriarBotao("Auto Comprar Pet (Forçado)", 5, PetsPage, LoopPets)
 CriarBotao("Auto Upgrade Pet", 48, PetsPage, LoopUpgradePet)
@@ -273,4 +292,4 @@ MinimizeButton.Activated:Connect(function()
     SpinPage.Visible = not Minimizado and AbaAtiva == "Spin"
 end)
 
-print("[Sucesso] Menu Tamayo v12.1 - Farm Inteligente Ativado!")
+print("[Sucesso] Menu Tamayo v12.2 - Correções para PC Ativadas!")
