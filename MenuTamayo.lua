@@ -3,7 +3,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local PlayerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
 
 if PlayerGui:FindFirstChild("MenuTamayo") then PlayerGui.MenuTamayo:Destroy() end
 
@@ -12,7 +11,7 @@ local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "MenuTamayo"; ScreenGui.ResetOnSpawn = false; ScreenGui.Parent = PlayerGui
 
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 320, 0, 400); -- Aumentei bastante para caber os menus
+MainFrame.Size = UDim2.new(0, 320, 0, 400); 
 MainFrame.Position = UDim2.new(0.5, -160, 0.3, -150)
 MainFrame.BackgroundColor3 = Color3.fromRGB(30, 25, 35); MainFrame.BorderSizePixel = 0
 MainFrame.Active = true; MainFrame.Draggable = true; MainFrame.Parent = ScreenGui
@@ -20,7 +19,7 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -45, 0, 35); Title.Position = UDim2.new(0, 12, 0, 0); Title.BackgroundTransparency = 1
-Title.Text = "🔮 Menu Tamayo v13.0"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "🔮 Menu Tamayo v13.1"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold; Title.TextSize = 14; Title.TextXAlignment = Enum.TextXAlignment.Left; Title.Parent = MainFrame
 
 local MinimizeButton = Instance.new("TextButton")
@@ -66,7 +65,7 @@ CriarAba("Pets", 75, PetsPage, "Pets")
 CriarAba("Combat", 150, CombatPage, "Combat")
 CriarAba("Spin", 225, SpinPage, "Spin")
 
--- === SISTEMA DE VELOCIDADE (BLINDADO v12.3) ===
+-- === SISTEMA DE VELOCIDADE ===
 local SpeedEnabled = true 
 local TargetSpeed = 16 
 
@@ -144,13 +143,12 @@ ToggleSwitch.Activated:Connect(function()
     end
 end)
 
--- === SISTEMA DE COMBATE PERSONALIZÁVEL ===
+-- === SISTEMA DE COMBATE ===
 local CombateAtivo = false
 local SkillSpamAtivo = false
 local PadraoAtaque = "Combo (1-4)" 
 local SkillEscolhida = "Todas as Skills"
 
--- Funções para os botões da interface (Dropdowns fake)
 local function CriarDropdown(nome, opcoes, posY, callbackMudanca)
     local Frame = Instance.new("Frame")
     Frame.Size = UDim2.new(1, 0, 0, 35); Frame.Position = UDim2.new(0, 0, 0, posY)
@@ -158,15 +156,18 @@ local function CriarDropdown(nome, opcoes, posY, callbackMudanca)
     Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 6)
 
     local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(0.6, 0, 1, 0); Label.Position = UDim2.new(0, 10, 0, 0)
+    Label.Size = UDim2.new(0.55, 0, 1, 0); Label.Position = UDim2.new(0, 10, 0, 0)
     Label.BackgroundTransparency = 1; Label.Text = nome
     Label.TextColor3 = Color3.fromRGB(255, 255, 255); Label.TextXAlignment = Enum.TextXAlignment.Left
     Label.Font = Enum.Font.SourceSansBold; Label.TextSize = 12; Label.Parent = Frame
 
     local Botao = Instance.new("TextButton")
-    Botao.Size = UDim2.new(0.4, -10, 1, -10); Botao.Position = UDim2.new(0.6, 0, 0, 5)
+    -- Aqui está a correção: Tamanho fixo, texto centralizado e tamanho ajustável
+    Botao.Size = UDim2.new(0.42, 0, 1, -10); Botao.Position = UDim2.new(0.58, 0, 0, 5)
     Botao.BackgroundColor3 = Color3.fromRGB(60, 50, 70); Botao.Text = opcoes[1]
-    Botao.TextColor3 = Color3.fromRGB(255, 255, 255); Botao.Font = Enum.Font.SourceSans; Botao.TextSize = 12; Botao.Parent = Frame
+    Botao.TextColor3 = Color3.fromRGB(255, 255, 255); Botao.Font = Enum.Font.SourceSans; Botao.TextSize = 11
+    Botao.TextScaled = true; -- Impede o botão de crescer e ajusta o texto
+    Botao.Parent = Frame
     Instance.new("UICorner", Botao).CornerRadius = UDim.new(0, 4)
 
     local indexAtual = 1
@@ -178,16 +179,15 @@ local function CriarDropdown(nome, opcoes, posY, callbackMudanca)
     end)
 end
 
--- Criando os Dropdowns
+-- Correção do nome "Select Skill"
 CriarDropdown("Attack Pattern", {"Combo (1-4)", "Heavy Hit (4)", "Light Hit (1)"}, 65, function(escolha)
     PadraoAtaque = escolha
 end)
 
-CriarDropdown("Select Skill to Cast", {"Todas as Skills", "Skill 3", "Skill 4"}, 105, function(escolha)
+CriarDropdown("Select Skill", {"Todas as Skills", "Skill 3", "Skill 4"}, 105, function(escolha)
     SkillEscolhida = escolha
 end)
 
--- Botões de Ligar/Desligar (Fast Attack e Spam Skill)
 local function CriarBotaoToggle(nome, posY, callback)
     local Btn = Instance.new("TextButton")
     Btn.Size = UDim2.new(1, 0, 0, 35); Btn.Position = UDim2.new(0, 0, 0, posY)
@@ -207,7 +207,7 @@ end
 CriarBotaoToggle("Fast Attack", 145, function(estado) CombateAtivo = estado end)
 CriarBotaoToggle("Spam Selected Skill", 185, function(estado) SkillSpamAtivo = estado end)
 
--- === O CÉREBRO DO COMBATE (Roda em segundo plano) ===
+-- Loop de Combate
 task.spawn(function()
     local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
     if not RemoteEvents then return end
@@ -219,33 +219,26 @@ task.spawn(function()
             if PadraoAtaque == "Combo (1-4)" then
                 for i = 1, 4 do GeneralAttack:FireServer(i); task.wait(0.05) end
             elseif PadraoAtaque == "Heavy Hit (4)" then
-                GeneralAttack:FireServer(4)
-                task.wait(0.2)
+                GeneralAttack:FireServer(4); task.wait(0.2)
             elseif PadraoAtaque == "Light Hit (1)" then
-                GeneralAttack:FireServer(1)
-                task.wait(0.2)
+                GeneralAttack:FireServer(1); task.wait(0.2)
             end
         end
 
         if SkillSpamAtivo and SkillAttack then
             if SkillEscolhida == "Todas as Skills" then
-                SkillAttack:FireServer(3)
-                task.wait(0.1)
-                SkillAttack:FireServer(4)
-                task.wait(0.5) -- Delay para não atropelar a animação
+                SkillAttack:FireServer(3); task.wait(0.1)
+                SkillAttack:FireServer(4); task.wait(0.5)
             elseif SkillEscolhida == "Skill 3" then
-                SkillAttack:FireServer(3)
-                task.wait(0.5)
+                SkillAttack:FireServer(3); task.wait(0.5)
             elseif SkillEscolhida == "Skill 4" then
-                SkillAttack:FireServer(4)
-                task.wait(0.5)
+                SkillAttack:FireServer(4); task.wait(0.5)
             end
         end
     end
 end)
 
-
--- === SISTEMA DE LOOPS (Farm, Pets e Spin) ===
+-- === OUTRAS ABAS (Farm, Pets, Spin) ===
 local LoopsAtivos = {}
 local function CriarBotao(nome, pos, pag, funcaoLoop)
     local Btn = Instance.new("TextButton")
@@ -261,7 +254,6 @@ local function CriarBotao(nome, pos, pag, funcaoLoop)
         LoopsAtivos[nome] = estado
         Btn.Text = nome .. (estado and ": LIGADO" or ": DESLIGADO")
         Btn.BackgroundColor3 = estado and Color3.fromRGB(50, 150, 80) or Color3.fromRGB(180, 50, 50)
-        
         if estado and funcaoLoop then
             task.spawn(function()
                 while LoopsAtivos[nome] do
@@ -309,7 +301,6 @@ local function LoopTrainFarm()
     end
 end
 
--- Preenchendo as outras abas
 CriarBotao("Auto Train Farm Kill", 5, AutoFarmPage, LoopTrainFarm) 
 CriarBotao("Auto Comprar Pet", 5, PetsPage, LoopPets)
 CriarBotao("Auto Upgrade Pet", 48, PetsPage, LoopUpgradePet)
@@ -326,4 +317,4 @@ MinimizeButton.Activated:Connect(function()
     SpinPage.Visible = not Minimizado and AbaAtiva == "Spin"
 end)
 
-print("[Sucesso] Menu Tamayo v13.0 - Combate Profissional Ativado!")
+print("[Sucesso] Menu Tamayo v13.1 - Botões Corrigidos!")
