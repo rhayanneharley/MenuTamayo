@@ -3,7 +3,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local PlayerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
 
 if PlayerGui:FindFirstChild("MenuTamayo") then PlayerGui.MenuTamayo:Destroy() end
 
@@ -12,7 +11,7 @@ local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "MenuTamayo"; ScreenGui.ResetOnSpawn = false; ScreenGui.Parent = PlayerGui
 
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 320, 0, 420); 
+MainFrame.Size = UDim2.new(0, 320, 0, 400); 
 MainFrame.Position = UDim2.new(0.5, -160, 0.3, -150)
 MainFrame.BackgroundColor3 = Color3.fromRGB(30, 25, 35); MainFrame.BorderSizePixel = 0
 MainFrame.Active = true; MainFrame.Draggable = true; MainFrame.Parent = ScreenGui
@@ -20,7 +19,7 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -45, 0, 35); Title.Position = UDim2.new(0, 12, 0, 0); Title.BackgroundTransparency = 1
-Title.Text = "🔮 Menu Tamayo v14.1"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "🔮 Menu Tamayo v15.0"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold; Title.TextSize = 14; Title.TextXAlignment = Enum.TextXAlignment.Left; Title.Parent = MainFrame
 
 local MinimizeButton = Instance.new("TextButton")
@@ -66,20 +65,6 @@ CriarAba("Pets", 75, PetsPage, "Pets")
 CriarAba("Combat", 150, CombatPage, "Combat")
 CriarAba("Spin", 225, SpinPage, "Spin")
 
--- === CONTAINER COM ROLAGEM NA ABA COMBAT ===
-local CombatScroll = Instance.new("ScrollingFrame")
-CombatScroll.Size = UDim2.new(1, 0, 1, 0)
-CombatScroll.BackgroundTransparency = 1
-CombatScroll.ScrollBarThickness = 2
-CombatScroll.ScrollBarImageColor3 = Color3.fromRGB(80, 70, 95)
-CombatScroll.CanvasSize = UDim2.new(0, 0, 0, 420)
-CombatScroll.Parent = CombatPage
-
-local UIListLayout = Instance.new("UIListLayout")
-UIListLayout.Parent = CombatScroll
-UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-UIListLayout.Padding = UDim.new(0, 8)
-
 -- === SISTEMA DE VELOCIDADE ===
 local SpeedEnabled = true 
 local TargetSpeed = 16 
@@ -96,93 +81,47 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
-local WalkspeedHeader = Instance.new("TextLabel")
-WalkspeedHeader.Size = UDim2.new(1, 0, 0, 20)
-WalkspeedHeader.BackgroundTransparency = 1
-WalkspeedHeader.Text = "Enable Custom WalkSpeed"
-WalkspeedHeader.TextColor3 = Color3.fromRGB(200, 200, 200)
-WalkspeedHeader.Font = Enum.Font.SourceSansBold
-WalkspeedHeader.TextSize = 13
-WalkspeedHeader.TextXAlignment = Enum.TextXAlignment.Left
-WalkspeedHeader.LayoutOrder = 1
-WalkspeedHeader.Parent = CombatScroll
-
 local SpeedFrame = Instance.new("Frame")
-SpeedFrame.Size = UDim2.new(1, 0, 0, 45)
-SpeedFrame.BackgroundColor3 = Color3.fromRGB(45, 38, 52)
-SpeedFrame.LayoutOrder = 2
-SpeedFrame.Parent = CombatScroll
+SpeedFrame.Size = UDim2.new(1, 0, 0, 55); SpeedFrame.Position = UDim2.new(0, 0, 0, 0)
+SpeedFrame.BackgroundColor3 = Color3.fromRGB(45, 38, 52); SpeedFrame.BorderSizePixel = 0; SpeedFrame.Parent = CombatPage
 Instance.new("UICorner", SpeedFrame).CornerRadius = UDim.new(0, 6)
 
 local ToggleSwitch = Instance.new("TextButton")
-ToggleSwitch.Size = UDim2.new(0, 35, 0, 18)
-ToggleSwitch.Position = UDim2.new(1, -45, 0, 13)
-ToggleSwitch.BackgroundColor3 = Color3.fromRGB(50, 150, 80)
-ToggleSwitch.Text = ""
-ToggleSwitch.Parent = SpeedFrame
-Instance.new("UICorner", ToggleSwitch).CornerRadius = UDim.new(0, 9)
-
-local ToggleCircle = Instance.new("Frame")
-ToggleCircle.Size = UDim2.new(0, 14, 0, 14)
-ToggleCircle.Position = UDim2.new(1, -16, 0, 2)
-ToggleCircle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-ToggleCircle.Parent = ToggleSwitch
-Instance.new("UICorner", ToggleCircle).CornerRadius = UDim.new(0, 7)
+ToggleSwitch.Size = UDim2.new(0, 40, 0, 20); ToggleSwitch.Position = UDim2.new(1, -50, 0, 8)
+ToggleSwitch.BackgroundColor3 = Color3.fromRGB(50, 150, 80); ToggleSwitch.Text = "ON"
+ToggleSwitch.TextColor3 = Color3.fromRGB(255, 255, 255); ToggleSwitch.Font = Enum.Font.SourceSansBold
+ToggleSwitch.TextSize = 10; ToggleSwitch.Parent = SpeedFrame
+Instance.new("UICorner", ToggleSwitch).CornerRadius = UDim.new(0, 10)
 
 local SpeedLabel = Instance.new("TextLabel")
-SpeedLabel.Size = UDim2.new(0, 120, 1, 0)
-SpeedLabel.Position = UDim2.new(0, 12, 0, 0)
-SpeedLabel.BackgroundTransparency = 1
-SpeedLabel.Text = "WalkSpeed Value"
-SpeedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-SpeedLabel.TextXAlignment = Enum.TextXAlignment.Left
-SpeedLabel.Font = Enum.Font.SourceSansBold
-SpeedLabel.TextSize = 13
-SpeedLabel.Parent = SpeedFrame
+SpeedLabel.Size = UDim2.new(1, -20, 0, 15); SpeedLabel.Position = UDim2.new(0, 10, 0, 30)
+SpeedLabel.BackgroundTransparency = 1; SpeedLabel.Text = "WalkSpeed Value: 16"
+SpeedLabel.TextColor3 = Color3.fromRGB(255, 255, 255); SpeedLabel.TextXAlignment = Enum.TextXAlignment.Left
+SpeedLabel.Font = Enum.Font.SourceSans; SpeedLabel.TextSize = 11; SpeedLabel.Parent = SpeedFrame
 
-local SpeedDisplayContainer = Instance.new("Frame")
-SpeedDisplayContainer.Size = UDim2.new(0, 90, 0, 24)
-SpeedDisplayContainer.Position = UDim2.new(0, 140, 0, 10)
-SpeedDisplayContainer.BackgroundColor3 = Color3.fromRGB(25, 20, 30)
-SpeedDisplayContainer.BorderSizePixel = 1
-SpeedDisplayContainer.BorderColor3 = Color3.fromRGB(65, 110, 210)
-SpeedDisplayContainer.Parent = SpeedFrame
-Instance.new("UICorner", SpeedDisplayContainer).CornerRadius = UDim.new(0, 5)
+local SpeedBarBg = Instance.new("Frame")
+SpeedBarBg.Size = UDim2.new(0, 200, 0, 8); SpeedBarBg.Position = UDim2.new(0, 10, 0, 45)
+SpeedBarBg.BackgroundColor3 = Color3.fromRGB(25, 20, 30); SpeedBarBg.BorderSizePixel = 0; SpeedBarBg.Parent = SpeedFrame
+Instance.new("UICorner", SpeedBarBg).CornerRadius = UDim.new(0, 4)
 
 local SpeedBarFill = Instance.new("Frame")
-SpeedBarFill.Size = UDim2.new(0, 0, 1, 0)
-SpeedBarFill.BackgroundColor3 = Color3.fromRGB(35, 75, 150)
-SpeedBarFill.BackgroundTransparency = 0.4
-SpeedBarFill.BorderSizePixel = 0
-SpeedBarFill.Parent = SpeedDisplayContainer
-Instance.new("UICorner", SpeedBarFill).CornerRadius = UDim.new(0, 5)
-
-local SpeedDisplayText = Instance.new("TextLabel")
-SpeedDisplayText.Size = UDim2.new(1, -10, 1, 0)
-SpeedDisplayText.Position = UDim2.new(0, 8, 0, 0)
-SpeedDisplayText.BackgroundTransparency = 1
-SpeedDisplayText.Text = "16 spd"
-SpeedDisplayText.TextColor3 = Color3.fromRGB(255, 255, 255)
-SpeedDisplayText.TextXAlignment = Enum.TextXAlignment.Left
-SpeedDisplayText.Font = Enum.Font.SourceSans
-SpeedDisplayText.TextSize = 12
-SpeedDisplayText.Parent = SpeedDisplayContainer
+SpeedBarFill.Size = UDim2.new(0, 0, 1, 0); SpeedBarFill.BackgroundColor3 = Color3.fromRGB(50, 150, 255)
+SpeedBarFill.BorderSizePixel = 0; SpeedBarFill.Parent = SpeedBarBg
+Instance.new("UICorner", SpeedBarFill).CornerRadius = UDim.new(0, 4)
 
 local SliderBtn = Instance.new("TextButton")
-SliderBtn.Size = UDim2.new(1, 0, 1, 0)
-SliderBtn.BackgroundTransparency = 1
-SliderBtn.Text = ""
-SliderBtn.Parent = SpeedDisplayContainer
+SliderBtn.Size = UDim2.new(1, 0, 1, 20); SliderBtn.Position = UDim2.new(0, 0, -0.5, 0)
+SliderBtn.BackgroundTransparency = 1; SliderBtn.Text = ""; SliderBtn.Parent = SpeedBarBg
 
 local isDragging = false
 local minSpeed, maxSpeed = 16, 150
 
 local function UpdateSpeed(inputX)
-    local relativeX = math.clamp(inputX - SpeedDisplayContainer.AbsolutePosition.X, 0, SpeedDisplayContainer.AbsoluteSize.X)
-    local percentage = relativeX / SpeedDisplayContainer.AbsoluteSize.X
+    local relativeX = math.clamp(inputX - SpeedBarBg.AbsolutePosition.X, 0, SpeedBarBg.AbsoluteSize.X)
+    local percentage = relativeX / SpeedBarBg.AbsoluteSize.X
     local speedValue = math.floor(minSpeed + (maxSpeed - minSpeed) * percentage)
     SpeedBarFill.Size = UDim2.new(percentage, 0, 1, 0)
-    SpeedDisplayText.Text = speedValue .. " spd"
+    SpeedLabel.Text = "WalkSpeed Value: " .. speedValue .. " spd"
     TargetSpeed = speedValue
 end
 
@@ -194,48 +133,206 @@ RunService.RenderStepped:Connect(function()
     if isDragging then UpdateSpeed(UserInputService:GetMouseLocation().X) end
 end)
 
-**ToggleSwitch.Activated:Connect(function()
+ToggleSwitch.Activated:Connect(function()
     SpeedEnabled = not SpeedEnabled
-    TweenService:Create(ToggleCircle, TweenInfo.new(0.15), {Position = SpeedEnabled and UDim2.new(1, -16, 0, 2) or UDim2.new(0, 2, 0, 2)}):Play()
-    ToggleSwitch.BackgroundColor3 = SpeedEnabled and Color3.fromRGB(50, 150, 80) or Color3.fromRGB(80, 75, 85)
+    ToggleSwitch.Text = SpeedEnabled and "ON" or "OFF"
+    ToggleSwitch.BackgroundColor3 = SpeedEnabled and Color3.fromRGB(50, 150, 80) or Color3.fromRGB(180, 50, 50)
     if not SpeedEnabled then
         local char = Players.LocalPlayer.Character
         if char and char:FindFirstChild("Humanoid") then char.Humanoid.WalkSpeed = 16 end
     end
-end)**
+end)
 
--- === NOVO DROPDOWN CORRIGIDO ===
-local OpenDropdown = nil
+-- === SISTEMA DE COMBATE (DESIGN DROPDOWN 0xseanlee) ===
+local CombateAtivo = false
+local SkillSpamAtivo = false
+local PadraoAtaque = "Combo (1-4)" 
+local SkillEscolhida = "Todas as Skills"
 
-local function CriarDropdownNovo(nome, opcoes, ordem, callback)
-    local HeaderLabel = Instance.new("TextLabel")
-    HeaderLabel.Size = UDim2.new(1, 0, 0, 18)
-    HeaderLabel.BackgroundTransparency = 1
-    HeaderLabel.Text = nome
-    HeaderLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-    HeaderLabel.Font = Enum.Font.SourceSansBold
-    HeaderLabel.TextSize = 13
-    HeaderLabel.TextXAlignment = Enum.TextXAlignment.Left
-    HeaderLabel.LayoutOrder = ordem
-    HeaderLabel.Parent = CombatScroll
-
+local function CriarDropdown(nomeLabel, opcoes, posY, callback)
     local Container = Instance.new("Frame")
-    Container.Size = UDim2.new(1, 0, 0, 36)
+    Container.Size = UDim2.new(1, 0, 0, 35); Container.Position = UDim2.new(0, 0, 0, posY)
+    Container.BackgroundColor3 = Color3.fromRGB(45, 38, 52); Container.BorderSizePixel = 0; Container.Parent = CombatPage
+    Instance.new("UICorner", Container).CornerRadius = UDim.new(0, 6)
+
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(0, 130, 1, 0); Label.Position = UDim2.new(0, 10, 0, 0)
+    Label.BackgroundTransparency = 1; Label.Text = nomeLabel
+    Label.TextColor3 = Color3.fromRGB(255, 255, 255); Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Font = Enum.Font.SourceSansBold; Label.TextSize = 12; Label.Parent = Container
+
+    local BotaoPrincipal = Instance.new("TextButton")
+    BotaoPrincipal.Size = UDim2.new(0, 140, 1, 0); BotaoPrincipal.Position = UDim2.new(1, -140, 0, 0)
+    BotaoPrincipal.BackgroundColor3 = Color3.fromRGB(65, 55, 80); BotaoPrincipal.Text = opcoes[1] .. "  v"
+    BotaoPrincipal.TextColor3 = Color3.fromRGB(255, 255, 255); BotaoPrincipal.Font = Enum.Font.SourceSans; BotaoPrincipal.TextSize = 11
+    BotaoPrincipal.TextXAlignment = Enum.TextXAlignment.Center; BotaoPrincipal.Parent = Container
+    Instance.new("UICorner", BotaoPrincipal).CornerRadius = UDim.new(0, 6)
+
+    local Lista = Instance.new("Frame")
+    Lista.Size = UDim2.new(0, 140, 0, #opcoes * 25); Lista.Position = UDim2.new(1, -140, 1, 5)
+    Lista.BackgroundColor3 = Color3.fromRGB(35, 30, 40); Lista.BorderSizePixel = 0; Lista.Visible = false; Lista.ZIndex = 10; Lista.Parent = Container
+    Instance.new("UICorner", Lista).CornerRadius = UDim.new(0, 6)
+
+    BotaoPrincipal.Activated:Connect(function()
+        Lista.Visible = not Lista.Visible
+        BotaoPrincipal.Text = opcoes[1] .. (Lista.Visible and "  ^" or "  v")
+    end)
+
+    for i, opcao in ipairs(opcoes) do
+        local OpcaoBtn = Instance.new("TextButton")
+        OpcaoBtn.Size = UDim2.new(1, 0, 0, 25); OpcaoBtn.Position = UDim2.new(0, 0, 0, (i-1)*25)
+        OpcaoBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 40); OpcaoBtn.BorderSizePixel = 0
+        OpcaoBtn.Text = opcao; OpcaoBtn.TextColor3 = Color3.fromRGB(255, 255, 255); OpcaoBtn.Font = Enum.Font.SourceSans; OpcaoBtn.TextSize = 11
+        OpcaoBtn.Parent = Lista
+        OpcaoBtn.Activated:Connect(function()
+            BotaoPrincipal.Text = opcao .. "  v"
+            Lista.Visible = false
+            callback(opcao)
+        end)
+    end
 end
-CriarBotao("Auto Train Farm Kill", 5, AutoFarmPage, LoopTrainFarm)
+
+local function CriarBotaoToggle(nome, posY, callback)
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(1, 0, 0, 35); Btn.Position = UDim2.new(0, 0, 0, posY)
+    Btn.BackgroundColor3 = Color3.fromRGB(180, 50, 50); Btn.Text = nome .. ": DESLIGADO"
+    Btn.TextColor3 = Color3.fromRGB(255, 255, 255); Btn.Font = Enum.Font.SourceSansBold; Btn.TextSize = 12; Btn.Parent = CombatPage
+    Instance.new("UICorner", Btn).CornerRadius = UDim.new(0, 6)
+
+    local estado = false
+    Btn.Activated:Connect(function()
+        estado = not estado
+        Btn.Text = nome .. (estado and ": LIGADO" or ": DESLIGADO")
+        Btn.BackgroundColor3 = estado and Color3.fromRGB(50, 150, 80) or Color3.fromRGB(180, 50, 50)
+        callback(estado)
+    end)
+end
+
+-- ADICIONANDO NA ORDEM QUE VOCÊ PEDIU (Idêntico ao 0xseanlee):
+CriarBotaoToggle("Fast Attack", 65, function(estado) CombateAtivo = estado end)
+
+CriarDropdown("Attack Pattern", {"Combo (1-4)", "Heavy Hit (4)", "Light Hit (1)"}, 105, function(escolha)
+    PadraoAtaque = escolha
+end)
+
+CriarDropdown("Select Skill", {"Todas as Skills", "Skill 1", "Skill 2", "Skill 3", "Skill 4"}, 145, function(escolha)
+    SkillEscolhida = escolha
+end)
+
+CriarBotaoToggle("Spam Selected Skill", 185, function(estado) SkillSpamAtivo = estado end)
+
+-- === LÓGICA DE COMBATE ===
+task.spawn(function()
+    local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
+    if not RemoteEvents then return end
+    local GeneralAttack = RemoteEvents:FindFirstChild("GeneralAttack")
+    local SkillAttack = RemoteEvents:FindFirstChild("SkillAttack")
+
+    while task.wait(0.1) do
+        if CombateAtivo and GeneralAttack then
+            if PadraoAtaque == "Combo (1-4)" then
+                for i = 1, 4 do GeneralAttack:FireServer(i); task.wait(0.05) end
+            elseif PadraoAtaque == "Heavy Hit (4)" then
+                GeneralAttack:FireServer(4); task.wait(0.2)
+            elseif PadraoAtaque == "Light Hit (1)" then
+                GeneralAttack:FireServer(1); task.wait(0.2)
+            end
+        end
+
+        if SkillSpamAtivo and SkillAttack then
+            if SkillEscolhida == "Todas as Skills" then
+                SkillAttack:FireServer(1); task.wait(0.1)
+                SkillAttack:FireServer(2); task.wait(0.1)
+                SkillAttack:FireServer(3); task.wait(0.1)
+                SkillAttack:FireServer(4); task.wait(0.4)
+            else
+                local numSkill = tonumber(SkillEscolhida:match("%d+"))
+                if numSkill then
+                    SkillAttack:FireServer(numSkill)
+                    task.wait(0.5)
+                end
+            end
+        end
+    end
+end)
+
+-- === OUTRAS ABAS ===
+local LoopsAtivos = {}
+local function CriarBotao(nome, pos, pag, funcaoLoop)
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(1, 0, 0, 35); Btn.Position = UDim2.new(0, 0, 0, pos)
+    Btn.BackgroundColor3 = Color3.fromRGB(180, 50, 50); Btn.Text = nome .. ": DESLIGADO"
+    Btn.TextColor3 = Color3.fromRGB(255, 255, 255); Btn.Font = Enum.Font.SourceSansBold; Btn.TextSize = 12; Btn.Parent = pag
+    Instance.new("UICorner", Btn).CornerRadius = UDim.new(0, 6)
+    
+    local estado = false
+    LoopsAtivos[nome] = false
+    Btn.Activated:Connect(function()
+        estado = not estado
+        LoopsAtivos[nome] = estado
+        Btn.Text = nome .. (estado and ": LIGADO" or ": DESLIGADO")
+        Btn.BackgroundColor3 = estado and Color3.fromRGB(50, 150, 80) or Color3.fromRGB(180, 50, 50)
+        if estado and funcaoLoop then
+            task.spawn(function()
+                while LoopsAtivos[nome] do
+                    local sucesso, erro = pcall(funcaoLoop)
+                    if not sucesso then warn("["..nome.."] Erro: "..tostring(erro)) end
+                    task.wait(0.1)
+                end
+            end)
+        end
+    end)
+end
+
+local function LoopSpin()
+    local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
+    if RemoteEvents and RemoteEvents:FindFirstChild("Roulette") then RemoteEvents.Roulette:FireServer(true) end
+end
+local function LoopUpgradePet()
+    local RemoteFunc = ReplicatedStorage:FindFirstChild("RemoteFunction") 
+    if RemoteFunc then RemoteFunc:InvokeServer({{PetId = 1, Version = 15910, Level = 0}}) end
+end
+local function LoopPets()
+    local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
+    if RemoteEvents then
+        local TouchPetShop, BuyPet = RemoteEvents:FindFirstChild("TouchPetShop"), RemoteEvents:FindFirstChild("BuyPet")
+        if TouchPetShop then TouchPetShop:FireServer() end
+        if BuyPet then BuyPet:FireServer("Pet", 1, 15910) end
+    end
+end
+local function LoopTrainFarm()
+    local char = Players.LocalPlayer.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    local temInimigoVivo = false
+    for _, obj in pairs(workspace:GetChildren()) do
+        if obj:IsA("Model") and obj:FindFirstChild("Humanoid") and obj.Humanoid.Health > 0 and obj ~= char then
+            temInimigoVivo = true; break
+        end
+    end
+    if not temInimigoVivo then
+        char.HumanoidRootPart.CFrame = CFrame.new(-1009.036, -1952.459, -173.605)
+        task.wait(0.3)
+        local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
+        if RemoteEvents and RemoteEvents:FindFirstChild("GoNextTrainLevel") then
+            RemoteEvents.GoNextTrainLevel:FireServer(char.HumanoidRootPart.CFrame, char.HumanoidRootPart.CFrame)
+        end
+    end
+end
+
+CriarBotao("Auto Train Farm Kill", 5, AutoFarmPage, LoopTrainFarm) 
 CriarBotao("Auto Comprar Pet", 5, PetsPage, LoopPets)
 CriarBotao("Auto Upgrade Pet", 48, PetsPage, LoopUpgradePet)
 CriarBotao("Auto Spin Roleta", 5, SpinPage, LoopSpin)
+
 MinimizeButton.Activated:Connect(function()
-Minimizado = not Minimizado
-MinimizeButton.Text = Minimizado and "+" or "-"
-MainFrame.Size = Minimizado and UDim2.new(0, 320, 0, 35) or UDim2.new(0, 320, 0, 420)
-TabsContainer.Visible = not Minimizado
-AutoFarmPage.Visible = (not Minimizado and AbaAtiva == "AutoFarm")
-PetsPage.Visible = (not Minimizado and AbaAtiva == "Pets")
-CombatPage.Visible = (not Minimizado and AbaAtiva == "Combat")
-SpinPage.Visible = not Minimizado and AbaAtiva == "Spin"
+    Minimizado = not Minimizado
+    MinimizeButton.Text = Minimizado and "+" or "-"
+    MainFrame.Size = Minimizado and UDim2.new(0, 320, 0, 35) or UDim2.new(0, 320, 0, 400)
+    TabsContainer.Visible = not Minimizado
+    AutoFarmPage.Visible = (not Minimizado and AbaAtiva == "AutoFarm")
+    PetsPage.Visible = (not Minimizado and AbaAtiva == "Pets")
+    CombatPage.Visible = (not Minimizado and AbaAtiva == "Combat")
+    SpinPage.Visible = not Minimizado and AbaAtiva == "Spin"
 end)
-task.wait(0.5)
-CombatScroll.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 20)
-print("[Sucesso] Menu Tamayo v14.1 - Carregado perfeitamente!")
+
+print("[Sucesso] Menu Tamayo v15.0 - Dropdown Nativo Ativado!")
