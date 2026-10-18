@@ -6,7 +6,7 @@ local UserInputService = game:GetService("UserInputService")
 
 if PlayerGui:FindFirstChild("MenuTamayo") then PlayerGui.MenuTamayo:Destroy() end
 
-local Minimizado, AbaAtiva = false, "AutoFarm"
+local Minimizado, AbaAtiva = false, "Combat"
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "MenuTamayo"; ScreenGui.ResetOnSpawn = false; ScreenGui.Parent = PlayerGui
 
@@ -19,7 +19,7 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -45, 0, 35); Title.Position = UDim2.new(0, 12, 0, 0); Title.BackgroundTransparency = 1
-Title.Text = "🔮 Menu Tamayo v12.2"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "🔮 Menu Tamayo v12.3"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold; Title.TextSize = 14; Title.TextXAlignment = Enum.TextXAlignment.Left; Title.Parent = MainFrame
 
 local MinimizeButton = Instance.new("TextButton")
@@ -39,13 +39,13 @@ local function CriarPagina()
 end
 
 local AutoFarmPage, PetsPage, CombatPage, SpinPage = CriarPagina(), CriarPagina(), CriarPagina(), CriarPagina()
-AutoFarmPage.Visible = true 
+CombatPage.Visible = true 
 
 local function CriarAba(nome, pos, pag, idAba)
     local Btn = Instance.new("TextButton")
     Btn.Size = UDim2.new(0, 65, 1, 0); Btn.Position = UDim2.new(0, pos, 0, 0)
-    Btn.BackgroundColor3 = (idAba == "AutoFarm") and Color3.fromRGB(65, 55, 80) or Color3.fromRGB(40, 35, 45)
-    Btn.Text = nome; Btn.TextColor3 = (idAba == "AutoFarm") and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(180, 180, 180)
+    Btn.BackgroundColor3 = (idAba == "Combat") and Color3.fromRGB(65, 55, 80) or Color3.fromRGB(40, 35, 45)
+    Btn.Text = nome; Btn.TextColor3 = (idAba == "Combat") and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(180, 180, 180)
     Btn.Font = Enum.Font.SourceSansBold; Btn.TextSize = 10; Btn.Parent = TabsContainer
     Instance.new("UICorner", Btn).CornerRadius = UDim.new(0, 6)
     
@@ -65,28 +65,23 @@ CriarAba("Pets", 70, PetsPage, "Pets")
 CriarAba("Combat", 140, CombatPage, "Combat")
 CriarAba("Spin", 210, SpinPage, "Spin")
 
--- === SISTEMA ANTI-RESET DE VELOCIDADE (MÉTODO INFALÍVEL PARA PC) ===
+-- === SISTEMA DE VELOCIDADE ULTRA-FORÇADO (PARA PC) ===
 local SpeedEnabled = true 
 local TargetSpeed = 16 
 
--- Função que monitora se o jogo tentar mudar a velocidade
-local function MonitorarVelocidade(char)
-    local humanoid = char:WaitForChild("Humanoid", 5)
-    if humanoid then
-        humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
-            -- Se o hack estiver ligado e o jogo tentar mudar a velocidade, força o valor de volta
-            if SpeedEnabled and humanoid.WalkSpeed ~= TargetSpeed then
+-- O Segredo: Aplicar a velocidade todo frame (60 vezes por segundo), antes do jogo perceber
+RunService.RenderStepped:Connect(function()
+    if SpeedEnabled then
+        local char = Players.LocalPlayer.Character
+        if char then
+            local humanoid = char:FindFirstChild("Humanoid")
+            if humanoid and humanoid.WalkSpeed ~= TargetSpeed then
                 humanoid.WalkSpeed = TargetSpeed
             end
-        end)
+        end
     end
-end
+end)
 
--- Aplica o monitor no personagem atual e em futuros (quando morrer e renascer)
-if Players.LocalPlayer.Character then MonitorarVelocidade(Players.LocalPlayer.Character) end
-Players.LocalPlayer.CharacterAdded:Connect(MonitorarVelocidade)
-
--- Interface do Slider
 local SpeedFrame = Instance.new("Frame")
 SpeedFrame.Size = UDim2.new(1, 0, 0, 55); SpeedFrame.Position = UDim2.new(0, 0, 0, 0)
 SpeedFrame.BackgroundColor3 = Color3.fromRGB(45, 38, 52); SpeedFrame.BorderSizePixel = 0; SpeedFrame.Parent = CombatPage
@@ -126,7 +121,7 @@ SliderBtn.Size = UDim2.new(1, 0, 1, 20); SliderBtn.Position = UDim2.new(0, 0, -0
 SliderBtn.BackgroundTransparency = 1; SliderBtn.Text = ""; SliderBtn.Parent = SpeedBarBg
 
 local isDragging = false
-local minSpeed, maxSpeed = 16, 100
+local minSpeed, maxSpeed = 16, 150 -- Aumentei o limite máximo no PC
 
 local function UpdateSpeed(inputX)
     local relativeX = math.clamp(inputX - SpeedBarBg.AbsolutePosition.X, 0, SpeedBarBg.AbsoluteSize.X)
@@ -181,14 +176,14 @@ local function CriarBotao(nome, pos, pag, funcaoLoop)
                 while LoopsAtivos[nome] do
                     local sucesso, erro = pcall(funcaoLoop)
                     if not sucesso then warn("["..nome.."] Erro: "..tostring(erro)) end
-                    task.wait(0.1) -- Loop rápido para o combate
+                    task.wait(0.1)
                 end
             end)
         end
     end)
 end
 
--- === FUNÇÕES DO JOGO (AGORA SEPARADAS) ===
+-- === FUNÇÕES DO JOGO ===
 local function LoopSpin()
     local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
     if RemoteEvents and RemoteEvents:FindFirstChild("Roulette") then RemoteEvents.Roulette:FireServer(true) end
@@ -199,21 +194,16 @@ local function LoopUpgradePet()
     if RemoteFunc then RemoteFunc:InvokeServer({{PetId = 1, Version = 15910, Level = 0}}) end
 end
 
--- 1. FUNÇÃO SÓ DE ATAQUE BÁSICO (FAST ATTACK)
 local function LoopFastAttack()
     local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
     if RemoteEvents then
         local GeneralAttack = RemoteEvents:FindFirstChild("GeneralAttack")
         if GeneralAttack then 
-            for i = 1, 4 do 
-                GeneralAttack:FireServer(i)
-                task.wait(0.05) 
-            end
+            for i = 1, 4 do GeneralAttack:FireServer(i); task.wait(0.05) end
         end
     end
 end
 
--- 2. FUNÇÃO SÓ DE SKILLS (AUTO SKILLS)
 local function LoopAutoSkills()
     local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
     if RemoteEvents then
@@ -235,7 +225,6 @@ local function LoopPets()
     end
 end
 
--- === A LÓGICA INTELIGENTE DO TREM ===
 local function LoopTrainFarm()
     local char = Players.LocalPlayer.Character
     if not char or not char:FindFirstChild("HumanoidRootPart") then return end
@@ -253,7 +242,6 @@ local function LoopTrainFarm()
     if not temInimigoVivo then
         char.HumanoidRootPart.CFrame = CFrame.new(-1009.036, -1952.459, -173.605)
         task.wait(0.3)
-
         local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
         if RemoteEvents then
             local GoNextTrainLevel = RemoteEvents:FindFirstChild("GoNextTrainLevel")
@@ -271,7 +259,6 @@ end
 CriarBotao("Auto Train Farm Kill", 5, AutoFarmPage, LoopTrainFarm) 
 CriarBotao("Auto Farm Kill (Visual)", 48, AutoFarmPage, nil)
 
--- Botões separados na aba Combat
 CriarBotao("Fast Attack (Apenas Combos)", 65, CombatPage, LoopFastAttack)
 CriarBotao("Auto Skills (Apenas Skills)", 108, CombatPage, LoopAutoSkills)
 
@@ -292,4 +279,4 @@ MinimizeButton.Activated:Connect(function()
     SpinPage.Visible = not Minimizado and AbaAtiva == "Spin"
 end)
 
-print("[Sucesso] Menu Tamayo v12.2 - Correções para PC Ativadas!")
+print("[Sucesso] Menu Tamayo v12.3 - Velocidade Ultra-Forçada para PC!")
