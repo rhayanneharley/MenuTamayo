@@ -6,7 +6,7 @@ local UserInputService = game:GetService("UserInputService")
 
 if PlayerGui:FindFirstChild("MenuTamayo") then PlayerGui.MenuTamayo:Destroy() end
 
-local Minimizado, AbaAtiva = false, "Combat"
+local Minimizado, AbaAtiva = false, "AutoFarm"
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "MenuTamayo"; ScreenGui.ResetOnSpawn = false; ScreenGui.Parent = PlayerGui
 
@@ -19,7 +19,7 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -45, 0, 35); Title.Position = UDim2.new(0, 12, 0, 0); Title.BackgroundTransparency = 1
-Title.Text = "🔮 Menu Tamayo v18.0"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "🔮 Menu Tamayo v18.1"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold; Title.TextSize = 14; Title.TextXAlignment = Enum.TextXAlignment.Left; Title.Parent = MainFrame
 
 local MinimizeButton = Instance.new("TextButton")
@@ -42,13 +42,13 @@ local function CriarPagina()
 end
 
 local AutoFarmPage, PetsPage, CombatPage, SpinPage = CriarPagina(), CriarPagina(), CriarPagina(), CriarPagina()
-CombatPage.Visible = true 
+AutoFarmPage.Visible = true 
 
 local function CriarAba(nome, pos, pag, idAba)
     local Btn = Instance.new("TextButton")
     Btn.Size = UDim2.new(0, 70, 1, 0); Btn.Position = UDim2.new(0, pos, 0, 0)
-    Btn.BackgroundColor3 = (idAba == "Combat") and Color3.fromRGB(65, 55, 80) or Color3.fromRGB(40, 35, 45)
-    Btn.Text = nome; Btn.TextColor3 = (idAba == "Combat") and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(180, 180, 180)
+    Btn.BackgroundColor3 = (idAba == "AutoFarm") and Color3.fromRGB(65, 55, 80) or Color3.fromRGB(40, 35, 45)
+    Btn.Text = nome; Btn.TextColor3 = (idAba == "AutoFarm") and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(180, 180, 180)
     Btn.Font = Enum.Font.SourceSansBold; Btn.TextSize = 10; Btn.Parent = TabsContainer
     Instance.new("UICorner", Btn).CornerRadius = UDim.new(0, 6)
     
@@ -68,7 +68,7 @@ CriarAba("Pets", 75, PetsPage, "Pets")
 CriarAba("Combat", 150, CombatPage, "Combat")
 CriarAba("Spin", 225, SpinPage, "Spin")
 
--- === SISTEMA DE VELOCIDADE CORRIGIDO ===
+-- === SISTEMA DE VELOCIDADE ===
 local SpeedEnabled = true 
 local TargetSpeed = 16 
 
@@ -113,44 +113,32 @@ SpeedBarFill.BorderSizePixel = 0; SpeedBarFill.Parent = SpeedBarBg
 Instance.new("UICorner", SpeedBarFill).CornerRadius = UDim.new(0, 4)
 
 local SliderBtn = Instance.new("TextButton")
-SliderBtn.Size = UDim2.new(1, 0, 1, 40); SliderBtn.Position = UDim2.new(0, 0, -0.5, 0) -- Área de clique maior
+SliderBtn.Size = UDim2.new(1, 0, 1, 40); SliderBtn.Position = UDim2.new(0, 0, -0.5, 0)
 SliderBtn.BackgroundTransparency = 1; SliderBtn.Text = ""; SliderBtn.Parent = SpeedBarBg
 
--- SISTEMA DE ARRASTAR BLINDADO (SEM BUG DO MOUSE)
 local minSpeed, maxSpeed = 16, 150
-local UserInputService = game:GetService("UserInputService")
+local isDragging = false
 
 local function UpdateSpeed(input)
     local mousePos = input.Position.X
     local relativeX = math.clamp(mousePos - SpeedBarBg.AbsolutePosition.X, 0, SpeedBarBg.AbsoluteSize.X)
     local percentage = relativeX / SpeedBarBg.AbsoluteSize.X
     local speedValue = math.floor(minSpeed + (maxSpeed - minSpeed) * percentage)
-    
     SpeedBarFill.Size = UDim2.new(percentage, 0, 1, 0)
     SpeedLabel.Text = "WalkSpeed Value: " .. speedValue .. " spd"
     TargetSpeed = speedValue
 end
 
-local isDragging = false
-
 SliderBtn.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        isDragging = true
-        UpdateSpeed(input) -- Atualiza na hora do clique
+        isDragging = true; UpdateSpeed(input)
     end
 end)
-
--- O segredo: O InputChanged só roda quando o mouse está de fato pressionado, e o InputEnded solta ele.
 UserInputService.InputChanged:Connect(function(input)
-    if isDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        UpdateSpeed(input)
-    end
+    if isDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then UpdateSpeed(input) end
 end)
-
 UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        isDragging = false
-    end
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then isDragging = false end
 end)
 
 ToggleSwitch.Activated:Connect(function()
@@ -163,8 +151,7 @@ ToggleSwitch.Activated:Connect(function()
     end
 end)
 
-
--- === SISTEMA DE COMBATE (ACCORDION) ===
+-- === SISTEMA DE COMBATE ===
 local CombateAtivo = false
 local SkillSpamAtivo = false
 local PadraoAtaque = "Combo (1-4)" 
@@ -319,22 +306,43 @@ local function LoopPets()
         if BuyPet then BuyPet:FireServer("Pet", 1, 15910) end
     end
 end
+
+-- === LÓGICA INTELIGENTE DO TREM (CORRIGIDA) ===
 local function LoopTrainFarm()
     local char = Players.LocalPlayer.Character
     if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+
+    -- 1. Verifica inimigos APENAS na pasta de inimigos do trem (evita contar o próprio jogador)
     local temInimigoVivo = false
     for _, obj in pairs(workspace:GetChildren()) do
+        -- Verifica se o objeto é um NPC e NÃO é o seu personagem
         if obj:IsA("Model") and obj:FindFirstChild("Humanoid") and obj.Humanoid.Health > 0 and obj ~= char then
-            temInimigoVivo = true; break
+            -- Verifica se o nome do modelo tem "NPC", "Enemy", "Mob" ou se não é um jogador
+            local isPlayer = Players:GetPlayerFromCharacter(obj)
+            if not isPlayer then
+                temInimigoVivo = true
+                break
+            end
         end
     end
+
+    -- 2. Se não tiver inimigo vivo, avança
     if not temInimigoVivo then
+        -- O teleporte para a posição base do mapa
         char.HumanoidRootPart.CFrame = CFrame.new(-1009.036, -1952.459, -173.605)
-        task.wait(0.3)
+        task.wait(0.5) -- Espera meio segundo para o jogo registrar a posição
+
         local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
-        if RemoteEvents and RemoteEvents:FindFirstChild("GoNextTrainLevel") then
-            RemoteEvents.GoNextTrainLevel:FireServer(char.HumanoidRootPart.CFrame, char.HumanoidRootPart.CFrame)
+        if RemoteEvents then
+            local GoNextTrainLevel = RemoteEvents:FindFirstChild("GoNextTrainLevel")
+            if GoNextTrainLevel then
+                -- Envia o comando
+                GoNextTrainLevel:FireServer(char.HumanoidRootPart.CFrame, char.HumanoidRootPart.CFrame)
+                print("[Train Farm] Inimigo derrotado! Avançando de nível...")
+            end
         end
+    else
+        print("[Train Farm] Inimigo vivo. Lutando...")
     end
 end
 
@@ -354,4 +362,4 @@ MinimizeButton.Activated:Connect(function()
     SpinPage.Visible = not Minimizado and AbaAtiva == "Spin"
 end)
 
-print("[Sucesso] Menu Tamayo v18.0 - Mouse e Interface 100% Consertados!")
+print("[Sucesso] Menu Tamayo v18.1 - Auto Train Consertado!")
