@@ -11,7 +11,7 @@ local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "MenuTamayo"; ScreenGui.ResetOnSpawn = false; ScreenGui.Parent = PlayerGui
 
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 300, 0, 270); 
+MainFrame.Size = UDim2.new(0, 300, 0, 300); -- Aumentei a altura para caber o 3º botão
 MainFrame.Position = UDim2.new(0.5, -150, 0.3, -110)
 MainFrame.BackgroundColor3 = Color3.fromRGB(30, 25, 35); MainFrame.BorderSizePixel = 0
 MainFrame.Active = true; MainFrame.Draggable = true; MainFrame.Parent = ScreenGui
@@ -19,7 +19,7 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -45, 0, 35); Title.Position = UDim2.new(0, 12, 0, 0); Title.BackgroundTransparency = 1
-Title.Text = "🔮 Menu Tamayo v12.3"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "🔮 Menu Tamayo v12.4"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold; Title.TextSize = 14; Title.TextXAlignment = Enum.TextXAlignment.Left; Title.Parent = MainFrame
 
 local MinimizeButton = Instance.new("TextButton")
@@ -65,11 +65,10 @@ CriarAba("Pets", 70, PetsPage, "Pets")
 CriarAba("Combat", 140, CombatPage, "Combat")
 CriarAba("Spin", 210, SpinPage, "Spin")
 
--- === SISTEMA DE VELOCIDADE ULTRA-FORÇADO (PARA PC) ===
+-- === SISTEMA DE VELOCIDADE ===
 local SpeedEnabled = true 
 local TargetSpeed = 16 
 
--- O Segredo: Aplicar a velocidade todo frame (60 vezes por segundo), antes do jogo perceber
 RunService.RenderStepped:Connect(function()
     if SpeedEnabled then
         local char = Players.LocalPlayer.Character
@@ -121,7 +120,7 @@ SliderBtn.Size = UDim2.new(1, 0, 1, 20); SliderBtn.Position = UDim2.new(0, 0, -0
 SliderBtn.BackgroundTransparency = 1; SliderBtn.Text = ""; SliderBtn.Parent = SpeedBarBg
 
 local isDragging = false
-local minSpeed, maxSpeed = 16, 150 -- Aumentei o limite máximo no PC
+local minSpeed, maxSpeed = 16, 150
 
 local function UpdateSpeed(inputX)
     local relativeX = math.clamp(inputX - SpeedBarBg.AbsolutePosition.X, 0, SpeedBarBg.AbsoluteSize.X)
@@ -216,6 +215,33 @@ local function LoopAutoSkills()
     end
 end
 
+-- A NOVA FUNÇÃO MESTRE (COMBO INTELIGENTE)
+local function LoopComboInsano()
+    local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
+    if RemoteEvents then
+        local GeneralAttack = RemoteEvents:FindFirstChild("GeneralAttack")
+        local SkillAttack = RemoteEvents:FindFirstChild("SkillAttack")
+        
+        -- 1. Bate 4 vezes (Combo básico)
+        if GeneralAttack then 
+            for i = 1, 4 do GeneralAttack:FireServer(i); task.wait(0.05) end
+        end
+        
+        -- 2. Pausa curta para o servidor registrar os ataques
+        task.wait(0.3) 
+        
+        -- 3. Usa as Skills
+        if SkillAttack then 
+            SkillAttack:FireServer(3)
+            task.wait(0.2) -- Espera a animação da skill 3 começar
+            SkillAttack:FireServer(4) 
+        end
+        
+        -- 4. Pausa maior para a animação terminar e não bugar
+        task.wait(1.2) 
+    end
+end
+
 local function LoopPets()
     local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
     if RemoteEvents then
@@ -232,10 +258,7 @@ local function LoopTrainFarm()
     local temInimigoVivo = false
     for _, obj in pairs(workspace:GetChildren()) do
         if obj:IsA("Model") and obj:FindFirstChild("Humanoid") and obj.Humanoid.Health > 0 then
-            if obj ~= char then
-                temInimigoVivo = true
-                break
-            end
+            if obj ~= char then temInimigoVivo = true; break end
         end
     end
 
@@ -261,6 +284,7 @@ CriarBotao("Auto Farm Kill (Visual)", 48, AutoFarmPage, nil)
 
 CriarBotao("Fast Attack (Apenas Combos)", 65, CombatPage, LoopFastAttack)
 CriarBotao("Auto Skills (Apenas Skills)", 108, CombatPage, LoopAutoSkills)
+CriarBotao("Combo Insano (Fast + Skills)", 151, CombatPage, LoopComboInsano) -- NOVO BOTÃO AQUI
 
 CriarBotao("Auto Comprar Pet (Forçado)", 5, PetsPage, LoopPets)
 CriarBotao("Auto Upgrade Pet", 48, PetsPage, LoopUpgradePet)
@@ -271,7 +295,7 @@ CriarBotao("Ignorar Animação", 48, SpinPage, nil)
 MinimizeButton.Activated:Connect(function()
     Minimizado = not Minimizado
     MinimizeButton.Text = Minimizado and "+" or "-"
-    MainFrame.Size = Minimizado and UDim2.new(0, 300, 0, 35) or UDim2.new(0, 300, 0, 270)
+    MainFrame.Size = Minimizado and UDim2.new(0, 300, 0, 35) or UDim2.new(0, 300, 0, 300)
     TabsContainer.Visible = not Minimizado
     AutoFarmPage.Visible = (not Minimizado and AbaAtiva == "AutoFarm")
     PetsPage.Visible = (not Minimizado and AbaAtiva == "Pets")
@@ -279,4 +303,4 @@ MinimizeButton.Activated:Connect(function()
     SpinPage.Visible = not Minimizado and AbaAtiva == "Spin"
 end)
 
-print("[Sucesso] Menu Tamayo v12.3 - Velocidade Ultra-Forçada para PC!")
+print("[Sucesso] Menu Tamayo v12.4 - Combo Inteligente Adicionado!")
