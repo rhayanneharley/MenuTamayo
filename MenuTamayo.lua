@@ -11,7 +11,7 @@ local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "MenuTamayo"; ScreenGui.ResetOnSpawn = false; ScreenGui.Parent = PlayerGui
 
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 320, 0, 400); 
+MainFrame.Size = UDim2.new(0, 320, 0, 420); 
 MainFrame.Position = UDim2.new(0.5, -160, 0.3, -150)
 MainFrame.BackgroundColor3 = Color3.fromRGB(30, 25, 35); MainFrame.BorderSizePixel = 0
 MainFrame.Active = true; MainFrame.Draggable = true; MainFrame.Parent = ScreenGui
@@ -19,7 +19,7 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -45, 0, 35); Title.Position = UDim2.new(0, 12, 0, 0); Title.BackgroundTransparency = 1
-Title.Text = "🔮 Menu Tamayo v15.0"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "🔮 Menu Tamayo v16.0"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold; Title.TextSize = 14; Title.TextXAlignment = Enum.TextXAlignment.Left; Title.Parent = MainFrame
 
 local MinimizeButton = Instance.new("TextButton")
@@ -143,39 +143,36 @@ ToggleSwitch.Activated:Connect(function()
     end
 end)
 
--- === SISTEMA DE COMBATE (DESIGN DROPDOWN 0xseanlee) ===
+-- === SISTEMA DE COMBATE (ACCORDION - ABRE PRA BAIXO) ===
 local CombateAtivo = false
 local SkillSpamAtivo = false
 local PadraoAtaque = "Combo (1-4)" 
 local SkillEscolhida = "Todas as Skills"
 
-local function CriarDropdown(nomeLabel, opcoes, posY, callback)
-    local Container = Instance.new("Frame")
-    Container.Size = UDim2.new(1, 0, 0, 35); Container.Position = UDim2.new(0, 0, 0, posY)
-    Container.BackgroundColor3 = Color3.fromRGB(45, 38, 52); Container.BorderSizePixel = 0; Container.Parent = CombatPage
-    Instance.new("UICorner", Container).CornerRadius = UDim.new(0, 6)
+local function CriarMenuExpansivo(nomeLabel, opcoes, posY, callback)
+    local BtnPrincipal = Instance.new("TextButton")
+    BtnPrincipal.Size = UDim2.new(1, 0, 0, 35); BtnPrincipal.Position = UDim2.new(0, 0, 0, posY)
+    BtnPrincipal.BackgroundColor3 = Color3.fromRGB(45, 38, 52); BtnPrincipal.Text = "  " .. nomeLabel .. ":  " .. opcoes[1] .. "  v"
+    BtnPrincipal.TextColor3 = Color3.fromRGB(255, 255, 255); BtnPrincipal.Font = Enum.Font.SourceSans; BtnPrincipal.TextSize = 12
+    BtnPrincipal.TextXAlignment = Enum.TextXAlignment.Left; BtnPrincipal.Parent = CombatPage
+    Instance.new("UICorner", BtnPrincipal).CornerRadius = UDim.new(0, 6)
 
-    local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(0, 130, 1, 0); Label.Position = UDim2.new(0, 10, 0, 0)
-    Label.BackgroundTransparency = 1; Label.Text = nomeLabel
-    Label.TextColor3 = Color3.fromRGB(255, 255, 255); Label.TextXAlignment = Enum.TextXAlignment.Left
-    Label.Font = Enum.Font.SourceSansBold; Label.TextSize = 12; Label.Parent = Container
+    local BtnContainer = Instance.new("Frame")
+    BtnContainer.Size = UDim2.new(1, 0, 0, 0); BtnContainer.Position = UDim2.new(0, 0, 0, posY + 35)
+    BtnContainer.BackgroundColor3 = Color3.fromRGB(35, 30, 40); BtnContainer.BorderSizePixel = 0; BtnContainer.ClipsDescendants = true; BtnContainer.Parent = CombatPage
+    Instance.new("UICorner", BtnContainer).CornerRadius = UDim.new(0, 6)
 
-    local BotaoPrincipal = Instance.new("TextButton")
-    BotaoPrincipal.Size = UDim2.new(0, 140, 1, 0); BotaoPrincipal.Position = UDim2.new(1, -140, 0, 0)
-    BotaoPrincipal.BackgroundColor3 = Color3.fromRGB(65, 55, 80); BotaoPrincipal.Text = opcoes[1] .. "  v"
-    BotaoPrincipal.TextColor3 = Color3.fromRGB(255, 255, 255); BotaoPrincipal.Font = Enum.Font.SourceSans; BotaoPrincipal.TextSize = 11
-    BotaoPrincipal.TextXAlignment = Enum.TextXAlignment.Center; BotaoPrincipal.Parent = Container
-    Instance.new("UICorner", BotaoPrincipal).CornerRadius = UDim.new(0, 6)
-
-    local Lista = Instance.new("Frame")
-    Lista.Size = UDim2.new(0, 140, 0, #opcoes * 25); Lista.Position = UDim2.new(1, -140, 1, 5)
-    Lista.BackgroundColor3 = Color3.fromRGB(35, 30, 40); Lista.BorderSizePixel = 0; Lista.Visible = false; Lista.ZIndex = 10; Lista.Parent = Container
-    Instance.new("UICorner", Lista).CornerRadius = UDim.new(0, 6)
-
-    BotaoPrincipal.Activated:Connect(function()
-        Lista.Visible = not Lista.Visible
-        BotaoPrincipal.Text = opcoes[1] .. (Lista.Visible and "  ^" or "  v")
+    local aberto = false
+    
+    BtnPrincipal.Activated:Connect(function()
+        aberto = not aberto
+        if aberto then
+            BtnContainer.Size = UDim2.new(1, 0, 0, #opcoes * 25)
+            BtnPrincipal.Text = "  " .. nomeLabel .. ":  " .. opcoes[1] .. "  ^"
+        else
+            BtnContainer.Size = UDim2.new(1, 0, 0, 0)
+            BtnPrincipal.Text = "  " .. nomeLabel .. ":  " .. opcoes[1] .. "  v"
+        end
     end)
 
     for i, opcao in ipairs(opcoes) do
@@ -183,10 +180,11 @@ local function CriarDropdown(nomeLabel, opcoes, posY, callback)
         OpcaoBtn.Size = UDim2.new(1, 0, 0, 25); OpcaoBtn.Position = UDim2.new(0, 0, 0, (i-1)*25)
         OpcaoBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 40); OpcaoBtn.BorderSizePixel = 0
         OpcaoBtn.Text = opcao; OpcaoBtn.TextColor3 = Color3.fromRGB(255, 255, 255); OpcaoBtn.Font = Enum.Font.SourceSans; OpcaoBtn.TextSize = 11
-        OpcaoBtn.Parent = Lista
+        OpcaoBtn.Parent = BtnContainer
         OpcaoBtn.Activated:Connect(function()
-            BotaoPrincipal.Text = opcao .. "  v"
-            Lista.Visible = false
+            aberto = false
+            BtnContainer.Size = UDim2.new(1, 0, 0, 0)
+            BtnPrincipal.Text = "  " .. nomeLabel .. ":  " .. opcao .. "  v"
             callback(opcao)
         end)
     end
@@ -208,14 +206,15 @@ local function CriarBotaoToggle(nome, posY, callback)
     end)
 end
 
--- ADICIONANDO NA ORDEM QUE VOCÊ PEDIU (Idêntico ao 0xseanlee):
+-- ADICIONANDO NA ORDEM CORRETA:
 CriarBotaoToggle("Fast Attack", 65, function(estado) CombateAtivo = estado end)
 
-CriarDropdown("Attack Pattern", {"Combo (1-4)", "Heavy Hit (4)", "Light Hit (1)"}, 105, function(escolha)
+-- O menu expansivo precisa de espaço extra para crescer, então os de baixo vão descer visualmente
+CriarMenuExpansivo("Attack Pattern", {"Combo (1-4)", "Heavy Hit (4)", "Light Hit (1)"}, 105, function(escolha)
     PadraoAtaque = escolha
 end)
 
-CriarDropdown("Select Skill", {"Todas as Skills", "Skill 1", "Skill 2", "Skill 3", "Skill 4"}, 145, function(escolha)
+CriarMenuExpansivo("Select Skill", {"Todas as Skills", "Skill 1", "Skill 2", "Skill 3", "Skill 4"}, 145, function(escolha)
     SkillEscolhida = escolha
 end)
 
@@ -327,7 +326,7 @@ CriarBotao("Auto Spin Roleta", 5, SpinPage, LoopSpin)
 MinimizeButton.Activated:Connect(function()
     Minimizado = not Minimizado
     MinimizeButton.Text = Minimizado and "+" or "-"
-    MainFrame.Size = Minimizado and UDim2.new(0, 320, 0, 35) or UDim2.new(0, 320, 0, 400)
+    MainFrame.Size = Minimizado and UDim2.new(0, 320, 0, 35) or UDim2.new(0, 320, 0, 420)
     TabsContainer.Visible = not Minimizado
     AutoFarmPage.Visible = (not Minimizado and AbaAtiva == "AutoFarm")
     PetsPage.Visible = (not Minimizado and AbaAtiva == "Pets")
@@ -335,4 +334,4 @@ MinimizeButton.Activated:Connect(function()
     SpinPage.Visible = not Minimizado and AbaAtiva == "Spin"
 end)
 
-print("[Sucesso] Menu Tamayo v15.0 - Dropdown Nativo Ativado!")
+print("[Sucesso] Menu Tamayo v16.0 - Menu Expansivo Nativo!")
