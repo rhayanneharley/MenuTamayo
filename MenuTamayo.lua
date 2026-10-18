@@ -80,7 +80,7 @@ UIListLayout.Parent = CombatScroll
 UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 UIListLayout.Padding = UDim.new(0, 8)
 
--- === SISTEMA DE VELOCIDADE (ESTILO NEW UI) ===
+-- === SISTEMA DE VELOCIDADE ===
 local SpeedEnabled = true 
 local TargetSpeed = 16 
 
@@ -194,7 +194,7 @@ RunService.RenderStepped:Connect(function()
     if isDragging then UpdateSpeed(UserInputService:GetMouseLocation().X) end
 end)
 
-ToggleSwitch.Activated:Connect(function()
+**ToggleSwitch.Activated:Connect(function()
     SpeedEnabled = not SpeedEnabled
     TweenService:Create(ToggleCircle, TweenInfo.new(0.15), {Position = SpeedEnabled and UDim2.new(1, -16, 0, 2) or UDim2.new(0, 2, 0, 2)}):Play()
     ToggleSwitch.BackgroundColor3 = SpeedEnabled and Color3.fromRGB(50, 150, 80) or Color3.fromRGB(80, 75, 85)
@@ -202,9 +202,9 @@ ToggleSwitch.Activated:Connect(function()
         local char = Players.LocalPlayer.Character
         if char and char:FindFirstChild("Humanoid") then char.Humanoid.WalkSpeed = 16 end
     end
-end)
+end)**
 
--- === NOVA ESTRUTURA REUTILIZÁVEL DE DROPDOWN (ESTILO 0xseanlee) ===
+-- === NOVO DROPDOWN CORRIGIDO ===
 local OpenDropdown = nil
 
 local function CriarDropdownNovo(nome, opcoes, ordem, callback)
@@ -220,3 +220,22 @@ local function CriarDropdownNovo(nome, opcoes, ordem, callback)
     HeaderLabel.Parent = CombatScroll
 
     local Container = Instance.new("Frame")
+    Container.Size = UDim2.new(1, 0, 0, 36)
+end
+CriarBotao("Auto Train Farm Kill", 5, AutoFarmPage, LoopTrainFarm)
+CriarBotao("Auto Comprar Pet", 5, PetsPage, LoopPets)
+CriarBotao("Auto Upgrade Pet", 48, PetsPage, LoopUpgradePet)
+CriarBotao("Auto Spin Roleta", 5, SpinPage, LoopSpin)
+MinimizeButton.Activated:Connect(function()
+Minimizado = not Minimizado
+MinimizeButton.Text = Minimizado and "+" or "-"
+MainFrame.Size = Minimizado and UDim2.new(0, 320, 0, 35) or UDim2.new(0, 320, 0, 420)
+TabsContainer.Visible = not Minimizado
+AutoFarmPage.Visible = (not Minimizado and AbaAtiva == "AutoFarm")
+PetsPage.Visible = (not Minimizado and AbaAtiva == "Pets")
+CombatPage.Visible = (not Minimizado and AbaAtiva == "Combat")
+SpinPage.Visible = not Minimizado and AbaAtiva == "Spin"
+end)
+task.wait(0.5)
+CombatScroll.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 20)
+print("[Sucesso] Menu Tamayo v14.1 - Carregado perfeitamente!")
