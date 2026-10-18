@@ -3,6 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local PlayerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 
 if PlayerGui:FindFirstChild("MenuTamayo") then PlayerGui.MenuTamayo:Destroy() end
 
@@ -11,7 +12,7 @@ local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "MenuTamayo"; ScreenGui.ResetOnSpawn = false; ScreenGui.Parent = PlayerGui
 
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 320, 0, 400); 
+MainFrame.Size = UDim2.new(0, 320, 0, 420); 
 MainFrame.Position = UDim2.new(0.5, -160, 0.3, -150)
 MainFrame.BackgroundColor3 = Color3.fromRGB(30, 25, 35); MainFrame.BorderSizePixel = 0
 MainFrame.Active = true; MainFrame.Draggable = true; MainFrame.Parent = ScreenGui
@@ -19,7 +20,7 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -45, 0, 35); Title.Position = UDim2.new(0, 12, 0, 0); Title.BackgroundTransparency = 1
-Title.Text = "🔮 Menu Tamayo v13.1"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "🔮 Menu Tamayo v14.0"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold; Title.TextSize = 14; Title.TextXAlignment = Enum.TextXAlignment.Left; Title.Parent = MainFrame
 
 local MinimizeButton = Instance.new("TextButton")
@@ -143,48 +144,61 @@ ToggleSwitch.Activated:Connect(function()
     end
 end)
 
--- === SISTEMA DE COMBATE ===
+-- === NOVO SISTEMA DE COMBATE (DESIGN 0xseanlee) ===
 local CombateAtivo = false
 local SkillSpamAtivo = false
 local PadraoAtaque = "Combo (1-4)" 
 local SkillEscolhida = "Todas as Skills"
 
-local function CriarDropdown(nome, opcoes, posY, callbackMudanca)
-    local Frame = Instance.new("Frame")
-    Frame.Size = UDim2.new(1, 0, 0, 35); Frame.Position = UDim2.new(0, 0, 0, posY)
-    Frame.BackgroundColor3 = Color3.fromRGB(45, 38, 52); Frame.BorderSizePixel = 0; Frame.Parent = CombatPage
-    Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 6)
+-- Função para criar um Dropdown de verdade
+local function CriarDropdown(nomeLabel, opcoes, posY, callbackMudanca)
+    local Container = Instance.new("Frame")
+    Container.Size = UDim2.new(1, 0, 0, 35); Container.Position = UDim2.new(0, 0, 0, posY)
+    Container.BackgroundColor3 = Color3.fromRGB(45, 38, 52); Container.BorderSizePixel = 0; Container.Parent = CombatPage
+    Instance.new("UICorner", Container).CornerRadius = UDim.new(0, 6)
 
     local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(0.55, 0, 1, 0); Label.Position = UDim2.new(0, 10, 0, 0)
-    Label.BackgroundTransparency = 1; Label.Text = nome
+    Label.Size = UDim2.new(0.6, 0, 1, 0); Label.Position = UDim2.new(0, 10, 0, 0)
+    Label.BackgroundTransparency = 1; Label.Text = nomeLabel
     Label.TextColor3 = Color3.fromRGB(255, 255, 255); Label.TextXAlignment = Enum.TextXAlignment.Left
-    Label.Font = Enum.Font.SourceSansBold; Label.TextSize = 12; Label.Parent = Frame
+    Label.Font = Enum.Font.SourceSansBold; Label.TextSize = 12; Label.Parent = Container
 
-    local Botao = Instance.new("TextButton")
-    -- Aqui está a correção: Tamanho fixo, texto centralizado e tamanho ajustável
-    Botao.Size = UDim2.new(0.42, 0, 1, -10); Botao.Position = UDim2.new(0.58, 0, 0, 5)
-    Botao.BackgroundColor3 = Color3.fromRGB(60, 50, 70); Botao.Text = opcoes[1]
-    Botao.TextColor3 = Color3.fromRGB(255, 255, 255); Botao.Font = Enum.Font.SourceSans; Botao.TextSize = 11
-    Botao.TextScaled = true; -- Impede o botão de crescer e ajusta o texto
-    Botao.Parent = Frame
-    Instance.new("UICorner", Botao).CornerRadius = UDim.new(0, 4)
+    local BotaoPrincipal = Instance.new("TextButton")
+    BotaoPrincipal.Size = UDim2.new(0, 130, 1, 0); BotaoPrincipal.Position = UDim2.new(1, -130, 0, 0)
+    BotaoPrincipal.BackgroundColor3 = Color3.fromRGB(60, 50, 70); BotaoPrincipal.Text = opcoes[1] .. "  v"
+    BotaoPrincipal.TextColor3 = Color3.fromRGB(255, 255, 255); BotaoPrincipal.Font = Enum.Font.SourceSans; BotaoPrincipal.TextSize = 11
+    BotaoPrincipal.TextXAlignment = Enum.TextXAlignment.Right; BotaoPrincipal.Parent = Container
+    Instance.new("UICorner", BotaoPrincipal).CornerRadius = UDim.new(0, 6)
 
-    local indexAtual = 1
-    Botao.Activated:Connect(function()
-        indexAtual = indexAtual + 1
-        if indexAtual > #opcoes then indexAtual = 1 end
-        Botao.Text = opcoes[indexAtual]
-        callbackMudanca(opcoes[indexAtual])
+    local Lista = Instance.new("Frame")
+    Lista.Size = UDim2.new(0, 130, 0, #opcoes * 25); Lista.Position = UDim2.new(1, -130, 1, 5)
+    Lista.BackgroundColor3 = Color3.fromRGB(35, 30, 40); Lista.BorderSizePixel = 0; Lista.Visible = false; Lista.ZIndex = 10; Lista.Parent = Container
+    Instance.new("UICorner", Lista).CornerRadius = UDim.new(0, 6)
+
+    BotaoPrincipal.Activated:Connect(function()
+        Lista.Visible = not Lista.Visible
+        BotaoPrincipal.Text = opcoes[1] .. (Lista.Visible and "  ^" or "  v")
     end)
+
+    for i, opcao in ipairs(opcoes) do
+        local OpcaoBtn = Instance.new("TextButton")
+        OpcaoBtn.Size = UDim2.new(1, 0, 0, 25); OpcaoBtn.Position = UDim2.new(0, 0, 0, (i-1)*25)
+        OpcaoBtn.BackgroundTransparency = 1; OpcaoBtn.Text = opcao
+        OpcaoBtn.TextColor3 = Color3.fromRGB(255, 255, 255); OpcaoBtn.Font = Enum.Font.SourceSans; OpcaoBtn.TextSize = 11
+        OpcaoBtn.TextXAlignment = Enum.TextXAlignment.Right; OpcaoBtn.Parent = Lista
+        OpcaoBtn.Activated:Connect(function()
+            BotaoPrincipal.Text = opcao .. "  v"
+            Lista.Visible = false
+            callbackMudanca(opcao)
+        end)
+    end
 end
 
--- Correção do nome "Select Skill"
 CriarDropdown("Attack Pattern", {"Combo (1-4)", "Heavy Hit (4)", "Light Hit (1)"}, 65, function(escolha)
     PadraoAtaque = escolha
 end)
 
-CriarDropdown("Select Skill", {"Todas as Skills", "Skill 3", "Skill 4"}, 105, function(escolha)
+CriarDropdown("Select Skill", {"Todas as Skills", "Skill 1", "Skill 2", "Skill 3", "Skill 4"}, 105, function(escolha)
     SkillEscolhida = escolha
 end)
 
@@ -207,7 +221,7 @@ end
 CriarBotaoToggle("Fast Attack", 145, function(estado) CombateAtivo = estado end)
 CriarBotaoToggle("Spam Selected Skill", 185, function(estado) SkillSpamAtivo = estado end)
 
--- Loop de Combate
+-- === LÓGICA DE COMBATE ===
 task.spawn(function()
     local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
     if not RemoteEvents then return end
@@ -227,18 +241,22 @@ task.spawn(function()
 
         if SkillSpamAtivo and SkillAttack then
             if SkillEscolhida == "Todas as Skills" then
+                SkillAttack:FireServer(1); task.wait(0.1)
+                SkillAttack:FireServer(2); task.wait(0.1)
                 SkillAttack:FireServer(3); task.wait(0.1)
-                SkillAttack:FireServer(4); task.wait(0.5)
-            elseif SkillEscolhida == "Skill 3" then
-                SkillAttack:FireServer(3); task.wait(0.5)
-            elseif SkillEscolhida == "Skill 4" then
-                SkillAttack:FireServer(4); task.wait(0.5)
+                SkillAttack:FireServer(4); task.wait(0.4)
+            else
+                local numSkill = tonumber(SkillEscolhida:match("%d+"))
+                if numSkill then
+                    SkillAttack:FireServer(numSkill)
+                    task.wait(0.5)
+                end
             end
         end
     end
 end)
 
--- === OUTRAS ABAS (Farm, Pets, Spin) ===
+-- === OUTRAS ABAS ===
 local LoopsAtivos = {}
 local function CriarBotao(nome, pos, pag, funcaoLoop)
     local Btn = Instance.new("TextButton")
@@ -309,7 +327,7 @@ CriarBotao("Auto Spin Roleta", 5, SpinPage, LoopSpin)
 MinimizeButton.Activated:Connect(function()
     Minimizado = not Minimizado
     MinimizeButton.Text = Minimizado and "+" or "-"
-    MainFrame.Size = Minimizado and UDim2.new(0, 320, 0, 35) or UDim2.new(0, 320, 0, 400)
+    MainFrame.Size = Minimizado and UDim2.new(0, 320, 0, 35) or UDim2.new(0, 320, 0, 420)
     TabsContainer.Visible = not Minimizado
     AutoFarmPage.Visible = (not Minimizado and AbaAtiva == "AutoFarm")
     PetsPage.Visible = (not Minimizado and AbaAtiva == "Pets")
@@ -317,4 +335,4 @@ MinimizeButton.Activated:Connect(function()
     SpinPage.Visible = not Minimizado and AbaAtiva == "Spin"
 end)
 
-print("[Sucesso] Menu Tamayo v13.1 - Botões Corrigidos!")
+print("[Sucesso] Menu Tamayo v14.0 - Design 0xseanlee Ativado!")
