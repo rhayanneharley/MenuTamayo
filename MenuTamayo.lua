@@ -3,7 +3,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local PlayerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
 
 if PlayerGui:FindFirstChild("MenuTamayo") then PlayerGui.MenuTamayo:Destroy() end
 
@@ -20,7 +19,7 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -45, 0, 35); Title.Position = UDim2.new(0, 12, 0, 0); Title.BackgroundTransparency = 1
-Title.Text = "🔮 Menu Tamayo v17.0"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "🔮 Menu Tamayo v18.0"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold; Title.TextSize = 14; Title.TextXAlignment = Enum.TextXAlignment.Left; Title.Parent = MainFrame
 
 local MinimizeButton = Instance.new("TextButton")
@@ -37,12 +36,8 @@ local function CriarPagina()
     Page.Size = UDim2.new(1, -20, 1, -85); Page.Position = UDim2.new(0, 10, 0, 75); Page.BackgroundTransparency = 1
     Page.Visible = false; Page.Parent = MainFrame
     
-    -- Adiciona layout automático para empurrar os botões
     local UIList = Instance.new("UIListLayout")
-    UIList.SortOrder = Enum.SortOrder.LayoutOrder
-    UIList.Padding = UDim.new(0, 8)
-    UIList.Parent = Page
-    
+    UIList.SortOrder = Enum.SortOrder.LayoutOrder; UIList.Padding = UDim.new(0, 8); UIList.Parent = Page
     return Page
 end
 
@@ -73,7 +68,7 @@ CriarAba("Pets", 75, PetsPage, "Pets")
 CriarAba("Combat", 150, CombatPage, "Combat")
 CriarAba("Spin", 225, SpinPage, "Spin")
 
--- === SISTEMA DE VELOCIDADE ===
+-- === SISTEMA DE VELOCIDADE CORRIGIDO ===
 local SpeedEnabled = true 
 local TargetSpeed = 16 
 
@@ -118,27 +113,44 @@ SpeedBarFill.BorderSizePixel = 0; SpeedBarFill.Parent = SpeedBarBg
 Instance.new("UICorner", SpeedBarFill).CornerRadius = UDim.new(0, 4)
 
 local SliderBtn = Instance.new("TextButton")
-SliderBtn.Size = UDim2.new(1, 0, 1, 20); SliderBtn.Position = UDim2.new(0, 0, -0.5, 0)
+SliderBtn.Size = UDim2.new(1, 0, 1, 40); SliderBtn.Position = UDim2.new(0, 0, -0.5, 0) -- Área de clique maior
 SliderBtn.BackgroundTransparency = 1; SliderBtn.Text = ""; SliderBtn.Parent = SpeedBarBg
 
-local isDragging = false
+-- SISTEMA DE ARRASTAR BLINDADO (SEM BUG DO MOUSE)
 local minSpeed, maxSpeed = 16, 150
+local UserInputService = game:GetService("UserInputService")
 
-local function UpdateSpeed(inputX)
-    local relativeX = math.clamp(inputX - SpeedBarBg.AbsolutePosition.X, 0, SpeedBarBg.AbsoluteSize.X)
+local function UpdateSpeed(input)
+    local mousePos = input.Position.X
+    local relativeX = math.clamp(mousePos - SpeedBarBg.AbsolutePosition.X, 0, SpeedBarBg.AbsoluteSize.X)
     local percentage = relativeX / SpeedBarBg.AbsoluteSize.X
     local speedValue = math.floor(minSpeed + (maxSpeed - minSpeed) * percentage)
+    
     SpeedBarFill.Size = UDim2.new(percentage, 0, 1, 0)
     SpeedLabel.Text = "WalkSpeed Value: " .. speedValue .. " spd"
     TargetSpeed = speedValue
 end
 
-SliderBtn.MouseButton1Down:Connect(function() isDragging = true end)
-UserInputService.InputEnded:Connect(function(input) 
-    if input.InputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then isDragging = false end 
+local isDragging = false
+
+SliderBtn.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        isDragging = true
+        UpdateSpeed(input) -- Atualiza na hora do clique
+    end
 end)
-RunService.RenderStepped:Connect(function()
-    if isDragging then UpdateSpeed(UserInputService:GetMouseLocation().X) end
+
+-- O segredo: O InputChanged só roda quando o mouse está de fato pressionado, e o InputEnded solta ele.
+UserInputService.InputChanged:Connect(function(input)
+    if isDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        UpdateSpeed(input)
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        isDragging = false
+    end
 end)
 
 ToggleSwitch.Activated:Connect(function()
@@ -151,14 +163,14 @@ ToggleSwitch.Activated:Connect(function()
     end
 end)
 
--- === SISTEMA DE COMBATE (ACCORDION COM AUTOMATIC SIZE) ===
+
+-- === SISTEMA DE COMBATE (ACCORDION) ===
 local CombateAtivo = false
 local SkillSpamAtivo = false
 local PadraoAtaque = "Combo (1-4)" 
 local SkillEscolhida = "Todas as Skills"
 
 local function CriarDropdown(nomeLabel, opcoes, layoutOrder, callback)
-    -- O Container Principal
     local Container = Instance.new("Frame")
     Container.Size = UDim2.new(1, 0, 0, 35); Container.LayoutOrder = layoutOrder
     Container.BackgroundColor3 = Color3.fromRGB(45, 38, 52); Container.BorderSizePixel = 0; Container.Parent = CombatPage
@@ -171,7 +183,6 @@ local function CriarDropdown(nomeLabel, opcoes, layoutOrder, callback)
     BotaoPrincipal.TextXAlignment = Enum.TextXAlignment.Left; BotaoPrincipal.Parent = Container
     Instance.new("UICorner", BotaoPrincipal).CornerRadius = UDim.new(0, 6)
 
-    -- A Lista Suspensa (Abre pra baixo)
     local Lista = Instance.new("Frame")
     Lista.Size = UDim2.new(1, 0, 0, 0); Lista.Position = UDim2.new(0, 0, 0, 35)
     Lista.BackgroundColor3 = Color3.fromRGB(35, 30, 40); Lista.BorderSizePixel = 0; Lista.ClipsDescendants = true; Lista.Parent = Container
@@ -189,7 +200,7 @@ local function CriarDropdown(nomeLabel, opcoes, layoutOrder, callback)
             Lista.Size = UDim2.new(1, 0, 0, 0)
             BotaoPrincipal.Text = "  " .. nomeLabel .. ":  " .. opcoes[1] .. "  v"
         end
-        Container.Size = UDim2.new(1, 0, 0, 35 + Lista.Size.Y.Offset) -- Faz o container crescer
+        Container.Size = UDim2.new(1, 0, 0, 35 + Lista.Size.Y.Offset)
     end)
 
     for i, opcao in ipairs(opcoes) do
@@ -224,17 +235,9 @@ local function CriarBotaoToggle(nome, layoutOrder, callback)
     end)
 end
 
--- ADICIONANDO NA ORDEM CORRETA:
 CriarBotaoToggle("Fast Attack", 2, function(estado) CombateAtivo = estado end)
-
-CriarDropdown("Attack Pattern", {"Combo (1-4)", "Heavy Hit (4)", "Light Hit (1)"}, 3, function(escolha)
-    PadraoAtaque = escolha
-end)
-
-CriarDropdown("Select Skill", {"Todas as Skills", "Skill 1", "Skill 2", "Skill 3", "Skill 4"}, 4, function(escolha)
-    SkillEscolhida = escolha
-end)
-
+CriarDropdown("Attack Pattern", {"Combo (1-4)", "Heavy Hit (4)", "Light Hit (1)"}, 3, function(escolha) PadraoAtaque = escolha end)
+CriarDropdown("Select Skill", {"Todas as Skills", "Skill 1", "Skill 2", "Skill 3", "Skill 4"}, 4, function(escolha) SkillEscolhida = escolha end)
 CriarBotaoToggle("Spam Selected Skill", 5, function(estado) SkillSpamAtivo = estado end)
 
 -- === LÓGICA DE COMBATE ===
@@ -351,4 +354,4 @@ MinimizeButton.Activated:Connect(function()
     SpinPage.Visible = not Minimizado and AbaAtiva == "Spin"
 end)
 
-print("[Sucesso] Menu Tamayo v17.0 - Auto Size Nativo!")
+print("[Sucesso] Menu Tamayo v18.0 - Mouse e Interface 100% Consertados!")
