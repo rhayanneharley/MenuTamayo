@@ -11,7 +11,7 @@ local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "MenuTamayo"; ScreenGui.ResetOnSpawn = false; ScreenGui.Parent = PlayerGui
 
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 380, 0, 420); -- Aumentei a largura para caber 5 abas
+MainFrame.Size = UDim2.new(0, 380, 0, 420); 
 MainFrame.Position = UDim2.new(0.5, -190, 0.3, -150)
 MainFrame.BackgroundColor3 = Color3.fromRGB(30, 25, 35); MainFrame.BorderSizePixel = 0
 MainFrame.Active = true; MainFrame.Draggable = true; MainFrame.Parent = ScreenGui
@@ -19,7 +19,7 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -45, 0, 35); Title.Position = UDim2.new(0, 12, 0, 0); Title.BackgroundTransparency = 1
-Title.Text = "🔮 Menu Tamayo v20.0"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "🔮 Menu Tamayo v20.2"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold; Title.TextSize = 14; Title.TextXAlignment = Enum.TextXAlignment.Left; Title.Parent = MainFrame
 
 local MinimizeButton = Instance.new("TextButton")
@@ -42,11 +42,11 @@ local function CriarPagina()
 end
 
 local AutoFarmPage, AutoKillPage, PetsPage, CombatPage, SpinPage = CriarPagina(), CriarPagina(), CriarPagina(), CriarPagina(), CriarPagina()
-AutoKillPage.Visible = true -- Deixei a nova aba aberta por padrão
+AutoKillPage.Visible = true
 
 local function CriarAba(nome, pos, pag, idAba)
     local Btn = Instance.new("TextButton")
-    Btn.Size = UDim2.new(0, 65, 1, 0); Btn.Position = UDim2.new(0, pos, 0, 0) -- Abas ligeiramente menores
+    Btn.Size = UDim2.new(0, 65, 1, 0); Btn.Position = UDim2.new(0, pos, 0, 0)
     Btn.BackgroundColor3 = (idAba == "AutoKill") and Color3.fromRGB(65, 55, 80) or Color3.fromRGB(40, 35, 45)
     Btn.Text = nome; Btn.TextColor3 = (idAba == "AutoKill") and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(180, 180, 180)
     Btn.Font = Enum.Font.SourceSansBold; Btn.TextSize = 10; Btn.Parent = TabsContainer
@@ -104,7 +104,7 @@ SpeedLabel.TextColor3 = Color3.fromRGB(255, 255, 255); SpeedLabel.TextXAlignment
 SpeedLabel.Font = Enum.Font.SourceSans; SpeedLabel.TextSize = 11; SpeedLabel.Parent = SpeedFrame
 
 local SpeedBarBg = Instance.new("Frame")
-SpeedBarBg.Size = UDim2.new(0, 260, 0, 8); SpeedBarBg.Position = UDim2.new(0, 10, 0, 45) -- Barra mais larga
+SpeedBarBg.Size = UDim2.new(0, 260, 0, 8); SpeedBarBg.Position = UDim2.new(0, 10, 0, 45)
 SpeedBarBg.BackgroundColor3 = Color3.fromRGB(25, 20, 30); SpeedBarBg.BorderSizePixel = 0; SpeedBarBg.Parent = SpeedFrame
 Instance.new("UICorner", SpeedBarBg).CornerRadius = UDim.new(0, 4)
 
@@ -263,7 +263,7 @@ task.spawn(function()
     end
 end)
 
--- === OUTRAS ABAS (FARM, PETS, SPIN) ===
+-- === OUTRAS ABAS ===
 local LoopsAtivos = {}
 local function CriarBotao(nome, layoutOrder, pag, funcaoLoop)
     local Btn = Instance.new("TextButton")
@@ -308,42 +308,33 @@ end
 local function LoopTrainFarm()
     local char = Players.LocalPlayer.Character
     if not char or not char:FindFirstChild("HumanoidRootPart") then return end
-
     local DISTANCIA_MAXIMA = 50 
     local posicaoMinha = char.HumanoidRootPart.Position
     local temInimigoPerto = false
-
     for _, obj in pairs(workspace:GetDescendants()) do
         if obj:IsA("Humanoid") and obj.Health > 0 then
             local model = obj.Parent
             if model and model.Name ~= char.Name and not Players:GetPlayerFromCharacter(model) then
                 if model:FindFirstChild("HumanoidRootPart") then
-                    local distancia = (model.HumanoidRootPart.Position - posicaoMinha).Magnitude
-                    if distancia <= DISTANCIA_MAXIMA then
-                        temInimigoPerto = true
-                        break 
+                    if (model.HumanoidRootPart.Position - posicaoMinha).Magnitude <= DISTANCIA_MAXIMA then
+                        temInimigoPerto = true; break 
                     end
                 end
             end
         end
     end
-
     if not temInimigoPerto then
         local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
-        if RemoteEvents then
-            local EnterTrain = RemoteEvents:FindFirstChild("EnterTrain")
-            if EnterTrain then
-                local ProximoVagaoPos = CFrame.new(-1008.998, -1955.500, -98.368)
-                char.HumanoidRootPart.CFrame = ProximoVagaoPos
-                EnterTrain:FireServer(true, ProximoVagaoPos)
-                print("[Auto Train] Vagão limpo! Teleportando...")
-                task.wait(2.5) 
-            end
+        if RemoteEvents and RemoteEvents:FindFirstChild("EnterTrain") then
+            local ProximoVagaoPos = CFrame.new(-1008.998, -1955.500, -98.368)
+            char.HumanoidRootPart.CFrame = ProximoVagaoPos
+            RemoteEvents.EnterTrain:FireServer(true, ProximoVagaoPos)
+            task.wait(2.5) 
         end
     end
 end
 
--- === NOVA LÓGICA DE AUTO KILL ===
+-- === A LÓGICA DE AUTO KILL USANDO ENEMY DAMAGE ===
 local function LoopAutoKill()
     local char = Players.LocalPlayer.Character
     if not char or not char:FindFirstChild("HumanoidRootPart") then return end
@@ -353,8 +344,8 @@ local function LoopAutoKill()
     local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
     
     if RemoteEvents then
-        local UpdateRank = RemoteEvents:FindFirstChild("UpdateRank")
-        if UpdateRank then
+        local EnemyDamageEvent = RemoteEvents:FindFirstChild("EnemyDamageEvent")
+        if EnemyDamageEvent then
             for _, obj in pairs(workspace:GetDescendants()) do
                 if obj:IsA("Humanoid") and obj.Health > 0 then
                     local model = obj.Parent
@@ -362,10 +353,11 @@ local function LoopAutoKill()
                         if model:FindFirstChild("HumanoidRootPart") then
                             local distancia = (model.HumanoidRootPart.Position - posicaoMinha).Magnitude
                             if distancia <= DISTANCIA_MAXIMA then
-                                -- Envia o comando de matar usando o nome do NPC
-                                UpdateRank:FireServer("KillDemon", {Name = model.Name})
-                                print("[Auto Kill] Tentando matar: " .. model.Name)
-                                task.wait(0.5) -- Delay para não spammar o servidor
+                                -- Argumentos capturados do jogo: Atacante, Alvo, Dano
+                                -- Vamos enviar dano massivo (999 Milhões)
+                                EnemyDamageEvent:FireServer(2, 0, 999999999, false, false)
+                                print("[Auto Kill] Enviando Dano Massivo para o NPC próximo...")
+                                task.wait(0.1) -- Delay para não crashar o servidor
                             end
                         end
                     end
@@ -377,7 +369,7 @@ end
 
 CriarBotao("Auto Train Farm", 1, AutoFarmPage, LoopTrainFarm) 
 CriarBotao("Auto Comprar Pet", 1, PetsPage, LoopPets)
-CriarBotao("Ativar Auto Kill (Distância)", 1, AutoKillPage, LoopAutoKill)
+CriarBotao("Ativar Auto Kill (Dano)", 1, AutoKillPage, LoopAutoKill)
 CriarBotao("Auto Spin Roleta", 1, SpinPage, LoopSpin)
 
 MinimizeButton.Activated:Connect(function()
@@ -392,4 +384,4 @@ MinimizeButton.Activated:Connect(function()
     SpinPage.Visible = not Minimizado and AbaAtiva == "Spin"
 end)
 
-print("[Sucesso] Menu Tamayo v20.0 - Auto Kill Adicionado e Pets Removido!")
+print("[Sucesso] Menu Tamayo v20.2 - Auto Kill por Dano Ativado!")
