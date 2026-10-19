@@ -6,20 +6,20 @@ local UserInputService = game:GetService("UserInputService")
 
 if PlayerGui:FindFirstChild("MenuTamayo") then PlayerGui.MenuTamayo:Destroy() end
 
-local Minimizado, AbaAtiva = false, "AutoFarm"
+local Minimizado, AbaAtiva = false, "AutoKill"
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "MenuTamayo"; ScreenGui.ResetOnSpawn = false; ScreenGui.Parent = PlayerGui
 
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 320, 0, 420); 
-MainFrame.Position = UDim2.new(0.5, -160, 0.3, -150)
+MainFrame.Size = UDim2.new(0, 380, 0, 420); -- Aumentei a largura para caber 5 abas
+MainFrame.Position = UDim2.new(0.5, -190, 0.3, -150)
 MainFrame.BackgroundColor3 = Color3.fromRGB(30, 25, 35); MainFrame.BorderSizePixel = 0
 MainFrame.Active = true; MainFrame.Draggable = true; MainFrame.Parent = ScreenGui
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -45, 0, 35); Title.Position = UDim2.new(0, 12, 0, 0); Title.BackgroundTransparency = 1
-Title.Text = "🔮 Menu Tamayo v19.4"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "🔮 Menu Tamayo v20.0"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold; Title.TextSize = 14; Title.TextXAlignment = Enum.TextXAlignment.Left; Title.Parent = MainFrame
 
 local MinimizeButton = Instance.new("TextButton")
@@ -41,14 +41,14 @@ local function CriarPagina()
     return Page
 end
 
-local AutoFarmPage, PetsPage, CombatPage, SpinPage = CriarPagina(), CriarPagina(), CriarPagina(), CriarPagina()
-AutoFarmPage.Visible = true 
+local AutoFarmPage, AutoKillPage, PetsPage, CombatPage, SpinPage = CriarPagina(), CriarPagina(), CriarPagina(), CriarPagina(), CriarPagina()
+AutoKillPage.Visible = true -- Deixei a nova aba aberta por padrão
 
 local function CriarAba(nome, pos, pag, idAba)
     local Btn = Instance.new("TextButton")
-    Btn.Size = UDim2.new(0, 70, 1, 0); Btn.Position = UDim2.new(0, pos, 0, 0)
-    Btn.BackgroundColor3 = (idAba == "AutoFarm") and Color3.fromRGB(65, 55, 80) or Color3.fromRGB(40, 35, 45)
-    Btn.Text = nome; Btn.TextColor3 = (idAba == "AutoFarm") and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(180, 180, 180)
+    Btn.Size = UDim2.new(0, 65, 1, 0); Btn.Position = UDim2.new(0, pos, 0, 0) -- Abas ligeiramente menores
+    Btn.BackgroundColor3 = (idAba == "AutoKill") and Color3.fromRGB(65, 55, 80) or Color3.fromRGB(40, 35, 45)
+    Btn.Text = nome; Btn.TextColor3 = (idAba == "AutoKill") and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(180, 180, 180)
     Btn.Font = Enum.Font.SourceSansBold; Btn.TextSize = 10; Btn.Parent = TabsContainer
     Instance.new("UICorner", Btn).CornerRadius = UDim.new(0, 6)
     
@@ -58,15 +58,16 @@ local function CriarAba(nome, pos, pag, idAba)
             if b:IsA("TextButton") then b.BackgroundColor3 = Color3.fromRGB(40, 35, 45); b.TextColor3 = Color3.fromRGB(180, 180, 180) end
         end
         Btn.BackgroundColor3 = Color3.fromRGB(65, 55, 80); Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        AutoFarmPage.Visible, PetsPage.Visible, CombatPage.Visible, SpinPage.Visible = false, false, false, false
+        AutoFarmPage.Visible, AutoKillPage.Visible, PetsPage.Visible, CombatPage.Visible, SpinPage.Visible = false, false, false, false, false
         pag.Visible = true
     end)
 end
 
 CriarAba("Farm", 0, AutoFarmPage, "AutoFarm") 
-CriarAba("Pets", 75, PetsPage, "Pets")
-CriarAba("Combat", 150, CombatPage, "Combat")
-CriarAba("Spin", 225, SpinPage, "Spin")
+CriarAba("Auto Kill", 70, AutoKillPage, "AutoKill")
+CriarAba("Pets", 140, PetsPage, "Pets")
+CriarAba("Combat", 210, CombatPage, "Combat")
+CriarAba("Spin", 280, SpinPage, "Spin")
 
 -- === SISTEMA DE VELOCIDADE ===
 local SpeedEnabled = true 
@@ -103,7 +104,7 @@ SpeedLabel.TextColor3 = Color3.fromRGB(255, 255, 255); SpeedLabel.TextXAlignment
 SpeedLabel.Font = Enum.Font.SourceSans; SpeedLabel.TextSize = 11; SpeedLabel.Parent = SpeedFrame
 
 local SpeedBarBg = Instance.new("Frame")
-SpeedBarBg.Size = UDim2.new(0, 200, 0, 8); SpeedBarBg.Position = UDim2.new(0, 10, 0, 45)
+SpeedBarBg.Size = UDim2.new(0, 260, 0, 8); SpeedBarBg.Position = UDim2.new(0, 10, 0, 45) -- Barra mais larga
 SpeedBarBg.BackgroundColor3 = Color3.fromRGB(25, 20, 30); SpeedBarBg.BorderSizePixel = 0; SpeedBarBg.Parent = SpeedFrame
 Instance.new("UICorner", SpeedBarBg).CornerRadius = UDim.new(0, 4)
 
@@ -206,11 +207,11 @@ local function CriarDropdown(nomeLabel, opcoes, layoutOrder, callback)
     end
 end
 
-local function CriarBotaoToggle(nome, layoutOrder, callback)
+local function CriarBotaoToggle(nome, layoutOrder, pag, callback)
     local Btn = Instance.new("TextButton")
     Btn.Size = UDim2.new(1, 0, 0, 35); Btn.LayoutOrder = layoutOrder
     Btn.BackgroundColor3 = Color3.fromRGB(180, 50, 50); Btn.Text = nome .. ": DESLIGADO"
-    Btn.TextColor3 = Color3.fromRGB(255, 255, 255); Btn.Font = Enum.Font.SourceSansBold; Btn.TextSize = 12; Btn.Parent = CombatPage
+    Btn.TextColor3 = Color3.fromRGB(255, 255, 255); Btn.Font = Enum.Font.SourceSansBold; Btn.TextSize = 12; Btn.Parent = pag
     Instance.new("UICorner", Btn).CornerRadius = UDim.new(0, 6)
 
     local estado = false
@@ -222,10 +223,10 @@ local function CriarBotaoToggle(nome, layoutOrder, callback)
     end)
 end
 
-CriarBotaoToggle("Fast Attack", 2, function(estado) CombateAtivo = estado end)
+CriarBotaoToggle("Fast Attack", 2, CombatPage, function(estado) CombateAtivo = estado end)
 CriarDropdown("Attack Pattern", {"Combo (1-4)", "Heavy Hit (4)", "Light Hit (1)"}, 3, function(escolha) PadraoAtaque = escolha end)
 CriarDropdown("Select Skill", {"Todas as Skills", "Skill 1", "Skill 2", "Skill 3", "Skill 4"}, 4, function(escolha) SkillEscolhida = escolha end)
-CriarBotaoToggle("Spam Selected Skill", 5, function(estado) SkillSpamAtivo = estado end)
+CriarBotaoToggle("Spam Selected Skill", 5, CombatPage, function(estado) SkillSpamAtivo = estado end)
 
 -- === LÓGICA DE COMBATE ===
 task.spawn(function()
@@ -262,7 +263,7 @@ task.spawn(function()
     end
 end)
 
--- === OUTRAS ABAS ===
+-- === OUTRAS ABAS (FARM, PETS, SPIN) ===
 local LoopsAtivos = {}
 local function CriarBotao(nome, layoutOrder, pag, funcaoLoop)
     local Btn = Instance.new("TextButton")
@@ -294,10 +295,6 @@ local function LoopSpin()
     local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
     if RemoteEvents and RemoteEvents:FindFirstChild("Roulette") then RemoteEvents.Roulette:FireServer(true) end
 end
-local function LoopUpgradePet()
-    local RemoteFunc = ReplicatedStorage:FindFirstChild("RemoteFunction") 
-    if RemoteFunc then RemoteFunc:InvokeServer({{PetId = 1, Version = 15910, Level = 0}}) end
-end
 local function LoopPets()
     local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
     if RemoteEvents then
@@ -307,72 +304,92 @@ local function LoopPets()
     end
 end
 
--- === A LÓGICA DEFINITIVA DO TREM (POR DISTÂNCIA) ===
+-- === LÓGICA DO TREM ===
 local function LoopTrainFarm()
     local char = Players.LocalPlayer.Character
     if not char or not char:FindFirstChild("HumanoidRootPart") then return end
 
-    -- Define a distância máxima (em studs) para considerar um NPC como "do trem"
     local DISTANCIA_MAXIMA = 50 
-    local meuPersonagem = char
-    local posicaoMinha = meuPersonagem.HumanoidRootPart.Position
-
+    local posicaoMinha = char.HumanoidRootPart.Position
     local temInimigoPerto = false
 
-    -- Varre o mapa procurando inimigos
     for _, obj in pairs(workspace:GetDescendants()) do
         if obj:IsA("Humanoid") and obj.Health > 0 then
             local model = obj.Parent
-            -- Verifica se não é você nem seu pet
             if model and model.Name ~= char.Name and not Players:GetPlayerFromCharacter(model) then
-                -- Verifica se o inimigo tem uma posição e está perto de você
                 if model:FindFirstChild("HumanoidRootPart") then
                     local distancia = (model.HumanoidRootPart.Position - posicaoMinha).Magnitude
                     if distancia <= DISTANCIA_MAXIMA then
                         temInimigoPerto = true
-                        break -- Achou um, não precisa continuar procurando
+                        break 
                     end
                 end
             end
         end
     end
 
-    -- Se NÃO tem inimigo perto, teleporta e envia o comando
     if not temInimigoPerto then
         local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
         if RemoteEvents then
             local EnterTrain = RemoteEvents:FindFirstChild("EnterTrain")
             if EnterTrain then
-                -- Teleporta o personagem para a coordenada do próximo vagão
                 local ProximoVagaoPos = CFrame.new(-1008.998, -1955.500, -98.368)
                 char.HumanoidRootPart.CFrame = ProximoVagaoPos
-                
-                -- Envia o comando para o servidor aceitar
                 EnterTrain:FireServer(true, ProximoVagaoPos)
-                print("[Auto Train] Vagão limpo! Teleportando para o próximo...")
-                
-                task.wait(2.5) -- Espera o jogo carregar o novo inimigo
+                print("[Auto Train] Vagão limpo! Teleportando...")
+                task.wait(2.5) 
             end
         end
-    else
-        print("[Auto Train] Inimigo perto! Lutando...")
+    end
+end
+
+-- === NOVA LÓGICA DE AUTO KILL ===
+local function LoopAutoKill()
+    local char = Players.LocalPlayer.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+
+    local DISTANCIA_MAXIMA = 60 
+    local posicaoMinha = char.HumanoidRootPart.Position
+    local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
+    
+    if RemoteEvents then
+        local UpdateRank = RemoteEvents:FindFirstChild("UpdateRank")
+        if UpdateRank then
+            for _, obj in pairs(workspace:GetDescendants()) do
+                if obj:IsA("Humanoid") and obj.Health > 0 then
+                    local model = obj.Parent
+                    if model and model.Name ~= char.Name and not Players:GetPlayerFromCharacter(model) then
+                        if model:FindFirstChild("HumanoidRootPart") then
+                            local distancia = (model.HumanoidRootPart.Position - posicaoMinha).Magnitude
+                            if distancia <= DISTANCIA_MAXIMA then
+                                -- Envia o comando de matar usando o nome do NPC
+                                UpdateRank:FireServer("KillDemon", {Name = model.Name})
+                                print("[Auto Kill] Tentando matar: " .. model.Name)
+                                task.wait(0.5) -- Delay para não spammar o servidor
+                            end
+                        end
+                    end
+                end
+            end
+        end
     end
 end
 
 CriarBotao("Auto Train Farm", 1, AutoFarmPage, LoopTrainFarm) 
 CriarBotao("Auto Comprar Pet", 1, PetsPage, LoopPets)
-CriarBotao("Auto Upgrade Pet", 2, PetsPage, LoopUpgradePet)
+CriarBotao("Ativar Auto Kill (Distância)", 1, AutoKillPage, LoopAutoKill)
 CriarBotao("Auto Spin Roleta", 1, SpinPage, LoopSpin)
 
 MinimizeButton.Activated:Connect(function()
     Minimizado = not Minimizado
     MinimizeButton.Text = Minimizado and "+" or "-"
-    MainFrame.Size = Minimizado and UDim2.new(0, 320, 0, 35) or UDim2.new(0, 320, 0, 420)
+    MainFrame.Size = Minimizado and UDim2.new(0, 380, 0, 35) or UDim2.new(0, 380, 0, 420)
     TabsContainer.Visible = not Minimizado
     AutoFarmPage.Visible = (not Minimizado and AbaAtiva == "AutoFarm")
+    AutoKillPage.Visible = (not Minimizado and AbaAtiva == "AutoKill")
     PetsPage.Visible = (not Minimizado and AbaAtiva == "Pets")
     CombatPage.Visible = (not Minimizado and AbaAtiva == "Combat")
     SpinPage.Visible = not Minimizado and AbaAtiva == "Spin"
 end)
 
-print("[Sucesso] Menu Tamayo v19.4 - Sensor de Distância Ativado!")
+print("[Sucesso] Menu Tamayo v20.0 - Auto Kill Adicionado e Pets Removido!")
