@@ -19,7 +19,7 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -45, 0, 35); Title.Position = UDim2.new(0, 12, 0, 0); Title.BackgroundTransparency = 1
-Title.Text = "🔮 Menu Tamayo v18.3"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "🔮 Menu Tamayo v18.4"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold; Title.TextSize = 14; Title.TextXAlignment = Enum.TextXAlignment.Left; Title.Parent = MainFrame
 
 local MinimizeButton = Instance.new("TextButton")
@@ -283,7 +283,7 @@ local function CriarBotao(nome, layoutOrder, pag, funcaoLoop)
                 while LoopsAtivos[nome] do
                     local sucesso, erro = pcall(funcaoLoop)
                     if not sucesso then warn("["..nome.."] Erro: "..tostring(erro)) end
-                    task.wait(0.5)
+                    task.wait(1) -- Checa a cada 1 segundo
                 end
             end)
         end
@@ -307,7 +307,7 @@ local function LoopPets()
     end
 end
 
--- === LÓGICA DO AUTO TRAIN (TELEPORTE INTELIGENTE) ===
+-- === LÓGICA DO AUTO TRAIN FARM (TELEPORTE FÍSICO) ===
 local function LoopTrainFarm()
     local char = Players.LocalPlayer.Character
     if not char or not char:FindFirstChild("HumanoidRootPart") then return end
@@ -323,22 +323,17 @@ local function LoopTrainFarm()
         end
     end
 
-    -- 2. Se o inimigo morreu, usa o comando nativo do jogo (GoNextTrainLevel)
+    -- 2. Se o inimigo morreu, teleporta o jogador para a coordenada do próximo vagão
     if not temInimigoVivo then
-        local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
-        if RemoteEvents and RemoteEvents:FindFirstChild("GoNextTrainLevel") then
-            -- Usa as coordenadas EXATAS que capturamos nas suas fotos
-            local PosicaoAtual = CFrame.new(-1009.036, -1952.459, -173.605)
-            local ProximoNivel = CFrame.new(-1008.998, -1955.500, -98.368)
-            
-            -- Dispara o comando que o próprio jogo usa para avançar!
-            RemoteEvents.GoNextTrainLevel:FireServer(PosicaoAtual, ProximoNivel)
-            print("[Train Farm] Inimigo morto! Avançando via comando nativo...")
-        end
+        -- A Coordenada exata da porta do "Próximo" (que vimos no seu RemoteSpy)
+        local CoordenadaProximo = CFrame.new(-1008.998, -1955.500, -98.368)
+        
+        char.HumanoidRootPart.CFrame = CoordenadaProximo
+        print("[Auto Train Farm] Inimigo morto! Teleportando para o próximo vagão...")
     end
 end
 
-CriarBotao("Auto Train Farm Kill", 1, AutoFarmPage, LoopTrainFarm) 
+CriarBotao("Auto Train Farm", 1, AutoFarmPage, LoopTrainFarm) 
 CriarBotao("Auto Comprar Pet", 1, PetsPage, LoopPets)
 CriarBotao("Auto Upgrade Pet", 2, PetsPage, LoopUpgradePet)
 CriarBotao("Auto Spin Roleta", 1, SpinPage, LoopSpin)
@@ -354,4 +349,4 @@ MinimizeButton.Activated:Connect(function()
     SpinPage.Visible = not Minimizado and AbaAtiva == "Spin"
 end)
 
-print("[Sucesso] Menu Tamayo v18.3 - Auto Train via Comando Nativo Ativado!")
+print("[Sucesso] Menu Tamayo v18.4 - Auto Train Farm (Teleporte) Ativado!")
