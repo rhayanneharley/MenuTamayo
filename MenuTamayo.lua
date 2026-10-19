@@ -19,7 +19,7 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -45, 0, 35); Title.Position = UDim2.new(0, 12, 0, 0); Title.BackgroundTransparency = 1
-Title.Text = "🔮 Menu Tamayo v19.2"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "🔮 Menu Tamayo v19.3"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold; Title.TextSize = 14; Title.TextXAlignment = Enum.TextXAlignment.Left; Title.Parent = MainFrame
 
 local MinimizeButton = Instance.new("TextButton")
@@ -283,7 +283,7 @@ local function CriarBotao(nome, layoutOrder, pag, funcaoLoop)
                 while LoopsAtivos[nome] do
                     local sucesso, erro = pcall(funcaoLoop)
                     if not sucesso then warn("["..nome.."] Erro: "..tostring(erro)) end
-                    task.wait(1.5) -- Tempo de segurança entre verificações
+                    task.wait(1.5) 
                 end
             end)
         end
@@ -307,45 +307,44 @@ local function LoopPets()
     end
 end
 
--- === A LÓGICA DEFINITIVA DO TREM ===
+-- === A LÓGICA DEFINITIVA DO TREM (CONTADOR E TELEPORTE REAL) ===
 local function LoopTrainFarm()
     local char = Players.LocalPlayer.Character
     if not char or not char:FindFirstChild("HumanoidRootPart") then return end
 
-    -- 1. Verifica se tem algum inimigo VIVO na pasta Workspace
-    local temInimigo = false
+    -- 1. Conta quantos Humanoids existem no mapa que NÃO são o jogador nem o pet
+    local inimigosCount = 0
     for _, obj in pairs(workspace:GetDescendants()) do
-        -- Verifica se é um Humanoid com vida e se NÃO é o jogador
         if obj:IsA("Humanoid") and obj.Health > 0 then
             local model = obj.Parent
-            if model and not Players:GetPlayerFromCharacter(model) then
-                -- Se o nome da Model tiver "NPC", "Demon", "Train", "Enemy" ou for parecido
-                local nameLower = string.lower(model.Name)
-                if string.find(nameLower, "npc") or string.find(nameLower, "demon") or string.find(nameLower, "train") or string.find(nameLower, "enemy") or string.find(nameLower, "mob") then
-                    temInimigo = true
-                    break
+            if model and not Players:GetPlayerFromCharacter(model) and not model:FindFirstChild("Pet") then
+                -- Ignora o seu próprio personagem
+                if model.Name ~= char.Name then
+                    inimigosCount = inimigosCount + 1
                 end
             end
         end
     end
 
-    -- 2. Se NÃO tem inimigo vivo, envia o comando
-    if not temInimigo then
+    -- 2. Se a contagem de inimigos for 0, avança
+    if inimigosCount == 0 then
         local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
         if RemoteEvents then
-            local GoNextTrainLevel = RemoteEvents:FindFirstChild("GoNextTrainLevel")
-            if GoNextTrainLevel then
-                local PosAtual = CFrame.new(-1009.036, -1952.459, -173.605)
-                local ProximoNivel = CFrame.new(-1008.998, -1955.500, -98.368)
+            local EnterTrain = RemoteEvents:FindFirstChild("EnterTrain")
+            if EnterTrain then
+                -- Teleporta o personagem para a coordenada do próximo vagão que você me mandou
+                local ProximoVagaoPos = CFrame.new(-1008.998, -1955.500, -98.368)
+                char.HumanoidRootPart.CFrame = ProximoVagaoPos
                 
-                GoNextTrainLevel:FireServer(PosAtual, ProximoNivel)
-                print("[Auto Train Farm] Nenhum inimigo! Avançando para o próximo vagão...")
+                -- E também envia o comando por garantia
+                EnterTrain:FireServer(true, ProximoVagaoPos)
+                print("[Auto Train] Inimigos mortos! Teleportando para o próximo vagão...")
                 
-                task.wait(2) -- Espera 2 segundos para o novo NPC nascer
+                task.wait(2) -- Espera 2 segundos para o jogo carregar o novo inimigo
             end
         end
     else
-        print("[Auto Train Farm] Inimigo detectado. Lutando...")
+        print("[Auto Train] Inimigos vivos: " .. inimigosCount .. ". Lutando...")
     end
 end
 
@@ -365,4 +364,4 @@ MinimizeButton.Activated:Connect(function()
     SpinPage.Visible = not Minimizado and AbaAtiva == "Spin"
 end)
 
-print("[Sucesso] Menu Tamayo v19.2 - Trem Inteligente!")
+print("[Sucesso] Menu Tamayo v19.3 - Contador de Inimigos Real!")
