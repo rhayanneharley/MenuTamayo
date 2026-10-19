@@ -19,7 +19,7 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -45, 0, 35); Title.Position = UDim2.new(0, 12, 0, 0); Title.BackgroundTransparency = 1
-Title.Text = "🔮 Menu Tamayo v20.2"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "🔮 Menu Tamayo v20.3"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold; Title.TextSize = 14; Title.TextXAlignment = Enum.TextXAlignment.Left; Title.Parent = MainFrame
 
 local MinimizeButton = Instance.new("TextButton")
@@ -334,7 +334,7 @@ local function LoopTrainFarm()
     end
 end
 
--- === A LÓGICA DE AUTO KILL USANDO ENEMY DAMAGE ===
+-- === A LÓGICA DE AUTO KILL (CORRIGIDA) ===
 local function LoopAutoKill()
     local char = Players.LocalPlayer.Character
     if not char or not char:FindFirstChild("HumanoidRootPart") then return end
@@ -344,21 +344,24 @@ local function LoopAutoKill()
     local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
     
     if RemoteEvents then
-        local EnemyDamageEvent = RemoteEvents:FindFirstChild("EnemyDamageEvent")
-        if EnemyDamageEvent then
-            for _, obj in pairs(workspace:GetDescendants()) do
-                if obj:IsA("Humanoid") and obj.Health > 0 then
-                    local model = obj.Parent
-                    if model and model.Name ~= char.Name and not Players:GetPlayerFromCharacter(model) then
-                        if model:FindFirstChild("HumanoidRootPart") then
-                            local distancia = (model.HumanoidRootPart.Position - posicaoMinha).Magnitude
-                            if distancia <= DISTANCIA_MAXIMA then
-                                -- Argumentos capturados do jogo: Atacante, Alvo, Dano
-                                -- Vamos enviar dano massivo (999 Milhões)
-                                EnemyDamageEvent:FireServer(2, 0, 999999999, false, false)
-                                print("[Auto Kill] Enviando Dano Massivo para o NPC próximo...")
-                                task.wait(0.1) -- Delay para não crashar o servidor
-                            end
+        -- CORREÇÃO: O nome do evento é EnemyDamage, não EnemyDamageEvent
+        local EnemyDamage = RemoteEvents:FindFirstChild("EnemyDamage") 
+        if not EnemyDamage then
+            warn("[Auto Kill] Evento EnemyDamage não encontrado!")
+            return
+        end
+        
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj:IsA("Humanoid") and obj.Health > 0 then
+                local model = obj.Parent
+                if model and model.Name ~= char.Name and not Players:GetPlayerFromCharacter(model) then
+                    if model:FindFirstChild("HumanoidRootPart") then
+                        local distancia = (model.HumanoidRootPart.Position - posicaoMinha).Magnitude
+                        if distancia <= DISTANCIA_MAXIMA then
+                            -- Dispara o dano exato
+                            EnemyDamage:FireServer(2, 0, 999999999, false, false)
+                            print("[Auto Kill] Atirando dano massivo em: " .. model.Name)
+                            task.wait(0.2) -- Delay para não bugar
                         end
                     end
                 end
@@ -384,4 +387,4 @@ MinimizeButton.Activated:Connect(function()
     SpinPage.Visible = not Minimizado and AbaAtiva == "Spin"
 end)
 
-print("[Sucesso] Menu Tamayo v20.2 - Auto Kill por Dano Ativado!")
+print("[Sucesso] Menu Tamayo v20.3 - Auto Kill por EnemyDamage Ativado!")
