@@ -19,7 +19,7 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -45, 0, 35); Title.Position = UDim2.new(0, 12, 0, 0); Title.BackgroundTransparency = 1
-Title.Text = "🔮 Menu Tamayo v19.0"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "🔮 Menu Tamayo v19.1"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold; Title.TextSize = 14; Title.TextXAlignment = Enum.TextXAlignment.Left; Title.Parent = MainFrame
 
 local MinimizeButton = Instance.new("TextButton")
@@ -307,38 +307,31 @@ local function LoopPets()
     end
 end
 
--- === A LÓGICA DO TREM (USANDO O COMANDO CORRETO) ===
+-- === LÓGICA DO TREM (MODO FORÇA BRUTA) ===
 local function LoopTrainFarm()
     local char = Players.LocalPlayer.Character
     if not char or not char:FindFirstChild("HumanoidRootPart") then return end
 
-    -- 1. Verifica se tem inimigo vivo (varrendo o mapa todo)
-    local temInimigoVivo = false
-    for _, obj in pairs(workspace:GetDescendants()) do
-        if obj:IsA("Humanoid") and obj.Health > 0 then
-            local parent = obj.Parent
-            if parent and not Players:GetPlayerFromCharacter(parent) then
-                temInimigoVivo = true
-                break
-            end
-        end
-    end
-
-    -- 2. Se o inimigo morreu, usa o EnterTrain para ir pro próximo
-    if not temInimigoVivo then
+    -- Se o seu personagem está vivo, ele tenta forçar o comando de ir pro próximo trem
+    local humanoid = char:FindFirstChild("Humanoid")
+    if humanoid and humanoid.Health > 0 then
         local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
         if RemoteEvents then
             local EnterTrain = RemoteEvents:FindFirstChild("EnterTrain")
+            local GoNextTrainLevel = RemoteEvents:FindFirstChild("GoNextTrainLevel")
+            
+            -- Tenta os dois comandos que o jogo usa nas suas fotos
             if EnterTrain then
-                -- Envia o comando para sair do trem atual (false)
-                EnterTrain:FireServer(false)
-                task.wait(0.5)
-                
-                -- Envia o comando para entrar no próximo (true + coordenada do proximo)
-                local ProximoVagaoPos = CFrame.new(-1008.998, -1955.500, -98.368)
-                EnterTrain:FireServer(true, ProximoVagaoPos)
-                
-                print("[Auto Train Farm] Tentando avançar para o próximo vagão via EnterTrain...")
+                local ProximoVagao = CFrame.new(-1008.998, -1955.500, -98.368)
+                EnterTrain:FireServer(true, ProximoVagao)
+                print("[Auto Train] Enviando EnterTrain...")
+            end
+            
+            if GoNextTrainLevel then
+                local PosAtual = CFrame.new(-1009.036, -1952.459, -173.605)
+                local ProximoVagao = CFrame.new(-1008.998, -1955.500, -98.368)
+                GoNextTrainLevel:FireServer(PosAtual, ProximoVagao)
+                print("[Auto Train] Enviando GoNextTrainLevel...")
             end
         end
     end
@@ -360,4 +353,4 @@ MinimizeButton.Activated:Connect(function()
     SpinPage.Visible = not Minimizado and AbaAtiva == "Spin"
 end)
 
-print("[Sucesso] Menu Tamayo v19.0 - EnterTrain Nativo Ativado!")
+print("[Sucesso] Menu Tamayo v19.1 - Auto Train Força Bruta!")
