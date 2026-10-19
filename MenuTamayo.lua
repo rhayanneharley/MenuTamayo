@@ -19,7 +19,7 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -45, 0, 35); Title.Position = UDim2.new(0, 12, 0, 0); Title.BackgroundTransparency = 1
-Title.Text = "🔮 Menu Tamayo v18.5"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "🔮 Menu Tamayo v19.0"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold; Title.TextSize = 14; Title.TextXAlignment = Enum.TextXAlignment.Left; Title.Parent = MainFrame
 
 local MinimizeButton = Instance.new("TextButton")
@@ -151,7 +151,7 @@ ToggleSwitch.Activated:Connect(function()
     end
 end)
 
--- === SISTEMA DE COMBATE (ACCORDION) ===
+-- === SISTEMA DE COMBATE ===
 local CombateAtivo = false
 local SkillSpamAtivo = false
 local PadraoAtaque = "Combo (1-4)" 
@@ -307,12 +307,12 @@ local function LoopPets()
     end
 end
 
--- === A NOVA LÓGICA (O DETETIVE DE NPCS E COMANDO NATIVO) ===
+-- === A LÓGICA DO TREM (USANDO O COMANDO CORRETO) ===
 local function LoopTrainFarm()
     local char = Players.LocalPlayer.Character
     if not char or not char:FindFirstChild("HumanoidRootPart") then return end
 
-    -- 1. Varre TODO o workspace (ignorando o próprio jogador) para achar QUALQUER Humanoid com vida
+    -- 1. Verifica se tem inimigo vivo (varrendo o mapa todo)
     local temInimigoVivo = false
     for _, obj in pairs(workspace:GetDescendants()) do
         if obj:IsA("Humanoid") and obj.Health > 0 then
@@ -324,23 +324,23 @@ local function LoopTrainFarm()
         end
     end
 
-    -- 2. Se não achou ninguém vivo (NPC morreu), envia o comando exato do jogo
+    -- 2. Se o inimigo morreu, usa o EnterTrain para ir pro próximo
     if not temInimigoVivo then
         local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
         if RemoteEvents then
-            local GoNextTrainLevel = RemoteEvents:FindFirstChild("GoNextTrainLevel")
-            if GoNextTrainLevel then
-                -- O comando exato que o jogo usa nas suas fotos
-                local PosAtual = CFrame.new(-1009.036, -1952.459, -173.605)
-                local ProximoNivel = CFrame.new(-1008.998, -1955.500, -98.368)
+            local EnterTrain = RemoteEvents:FindFirstChild("EnterTrain")
+            if EnterTrain then
+                -- Envia o comando para sair do trem atual (false)
+                EnterTrain:FireServer(false)
+                task.wait(0.5)
                 
-                GoNextTrainLevel:FireServer(PosAtual, ProximoNivel)
-                print("[Auto Train Farm] Inimigo morto! Enviando GoNextTrainLevel...")
+                -- Envia o comando para entrar no próximo (true + coordenada do proximo)
+                local ProximoVagaoPos = CFrame.new(-1008.998, -1955.500, -98.368)
+                EnterTrain:FireServer(true, ProximoVagaoPos)
+                
+                print("[Auto Train Farm] Tentando avançar para o próximo vagão via EnterTrain...")
             end
         end
-    else
-        -- Se achou inimigo, avisa no console
-        print("[Auto Train Farm] Inimigo vivo detectado. Aguardando...")
     end
 end
 
@@ -360,4 +360,4 @@ MinimizeButton.Activated:Connect(function()
     SpinPage.Visible = not Minimizado and AbaAtiva == "Spin"
 end)
 
-print("[Sucesso] Menu Tamayo v18.5 - Detetive de NPCs e Comando Nativo Ativados!")
+print("[Sucesso] Menu Tamayo v19.0 - EnterTrain Nativo Ativado!")
