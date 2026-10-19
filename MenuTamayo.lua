@@ -19,7 +19,7 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -45, 0, 35); Title.Position = UDim2.new(0, 12, 0, 0); Title.BackgroundTransparency = 1
-Title.Text = "🔮 Menu Tamayo v20.3"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "🔮 Menu Tamayo v20.4"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold; Title.TextSize = 14; Title.TextXAlignment = Enum.TextXAlignment.Left; Title.Parent = MainFrame
 
 local MinimizeButton = Instance.new("TextButton")
@@ -334,7 +334,7 @@ local function LoopTrainFarm()
     end
 end
 
--- === A LÓGICA DE AUTO KILL (CORRIGIDA) ===
+-- === A LÓGICA DE AUTO KILL USANDO UpdateRank ===
 local function LoopAutoKill()
     local char = Players.LocalPlayer.Character
     if not char or not char:FindFirstChild("HumanoidRootPart") then return end
@@ -344,12 +344,8 @@ local function LoopAutoKill()
     local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
     
     if RemoteEvents then
-        -- CORREÇÃO: O nome do evento é EnemyDamage, não EnemyDamageEvent
-        local EnemyDamage = RemoteEvents:FindFirstChild("EnemyDamage") 
-        if not EnemyDamage then
-            warn("[Auto Kill] Evento EnemyDamage não encontrado!")
-            return
-        end
+        local UpdateRank = RemoteEvents:FindFirstChild("UpdateRank")
+        if not UpdateRank then return end
         
         for _, obj in pairs(workspace:GetDescendants()) do
             if obj:IsA("Humanoid") and obj.Health > 0 then
@@ -358,10 +354,13 @@ local function LoopAutoKill()
                     if model:FindFirstChild("HumanoidRootPart") then
                         local distancia = (model.HumanoidRootPart.Position - posicaoMinha).Magnitude
                         if distancia <= DISTANCIA_MAXIMA then
-                            -- Dispara o dano exato
-                            EnemyDamage:FireServer(2, 0, 999999999, false, false)
-                            print("[Auto Kill] Atirando dano massivo em: " .. model.Name)
-                            task.wait(0.2) -- Delay para não bugar
+                            -- Pega o nome exato do NPC
+                            local nomeNPC = model.Name
+                            
+                            -- Envia o comando de morte do jeito que o jogo faz
+                            UpdateRank:FireServer("KillDemon", {DisplayName = nomeNPC})
+                            print("[Auto Kill] Tentando matar via UpdateRank: " .. nomeNPC)
+                            task.wait(0.5) -- Delay para o servidor processar
                         end
                     end
                 end
@@ -372,7 +371,7 @@ end
 
 CriarBotao("Auto Train Farm", 1, AutoFarmPage, LoopTrainFarm) 
 CriarBotao("Auto Comprar Pet", 1, PetsPage, LoopPets)
-CriarBotao("Ativar Auto Kill (Dano)", 1, AutoKillPage, LoopAutoKill)
+CriarBotao("Ativar Auto Kill (UpdateRank)", 1, AutoKillPage, LoopAutoKill)
 CriarBotao("Auto Spin Roleta", 1, SpinPage, LoopSpin)
 
 MinimizeButton.Activated:Connect(function()
@@ -387,4 +386,4 @@ MinimizeButton.Activated:Connect(function()
     SpinPage.Visible = not Minimizado and AbaAtiva == "Spin"
 end)
 
-print("[Sucesso] Menu Tamayo v20.3 - Auto Kill por EnemyDamage Ativado!")
+print("[Sucesso] Menu Tamayo v20.4 - Auto Kill via UpdateRank!")
