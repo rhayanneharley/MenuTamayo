@@ -19,7 +19,7 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -45, 0, 35); Title.Position = UDim2.new(0, 12, 0, 0); Title.BackgroundTransparency = 1
-Title.Text = "🔮 Menu Tamayo v18.4"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "🔮 Menu Tamayo v18.5"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold; Title.TextSize = 14; Title.TextXAlignment = Enum.TextXAlignment.Left; Title.Parent = MainFrame
 
 local MinimizeButton = Instance.new("TextButton")
@@ -283,7 +283,7 @@ local function CriarBotao(nome, layoutOrder, pag, funcaoLoop)
                 while LoopsAtivos[nome] do
                     local sucesso, erro = pcall(funcaoLoop)
                     if not sucesso then warn("["..nome.."] Erro: "..tostring(erro)) end
-                    task.wait(1) -- Checa a cada 1 segundo
+                    task.wait(1) 
                 end
             end)
         end
@@ -307,29 +307,40 @@ local function LoopPets()
     end
 end
 
--- === LÓGICA DO AUTO TRAIN FARM (TELEPORTE FÍSICO) ===
+-- === A NOVA LÓGICA (O DETETIVE DE NPCS E COMANDO NATIVO) ===
 local function LoopTrainFarm()
     local char = Players.LocalPlayer.Character
     if not char or not char:FindFirstChild("HumanoidRootPart") then return end
 
-    -- 1. Verifica inimigos vivos
+    -- 1. Varre TODO o workspace (ignorando o próprio jogador) para achar QUALQUER Humanoid com vida
     local temInimigoVivo = false
-    for _, obj in pairs(workspace:GetChildren()) do
-        if obj:IsA("Model") and obj:FindFirstChild("Humanoid") and obj.Humanoid.Health > 0 then
-            if not Players:GetPlayerFromCharacter(obj) then
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if obj:IsA("Humanoid") and obj.Health > 0 then
+            local parent = obj.Parent
+            if parent and not Players:GetPlayerFromCharacter(parent) then
                 temInimigoVivo = true
                 break
             end
         end
     end
 
-    -- 2. Se o inimigo morreu, teleporta o jogador para a coordenada do próximo vagão
+    -- 2. Se não achou ninguém vivo (NPC morreu), envia o comando exato do jogo
     if not temInimigoVivo then
-        -- A Coordenada exata da porta do "Próximo" (que vimos no seu RemoteSpy)
-        local CoordenadaProximo = CFrame.new(-1008.998, -1955.500, -98.368)
-        
-        char.HumanoidRootPart.CFrame = CoordenadaProximo
-        print("[Auto Train Farm] Inimigo morto! Teleportando para o próximo vagão...")
+        local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
+        if RemoteEvents then
+            local GoNextTrainLevel = RemoteEvents:FindFirstChild("GoNextTrainLevel")
+            if GoNextTrainLevel then
+                -- O comando exato que o jogo usa nas suas fotos
+                local PosAtual = CFrame.new(-1009.036, -1952.459, -173.605)
+                local ProximoNivel = CFrame.new(-1008.998, -1955.500, -98.368)
+                
+                GoNextTrainLevel:FireServer(PosAtual, ProximoNivel)
+                print("[Auto Train Farm] Inimigo morto! Enviando GoNextTrainLevel...")
+            end
+        end
+    else
+        -- Se achou inimigo, avisa no console
+        print("[Auto Train Farm] Inimigo vivo detectado. Aguardando...")
     end
 end
 
@@ -349,4 +360,4 @@ MinimizeButton.Activated:Connect(function()
     SpinPage.Visible = not Minimizado and AbaAtiva == "Spin"
 end)
 
-print("[Sucesso] Menu Tamayo v18.4 - Auto Train Farm (Teleporte) Ativado!")
+print("[Sucesso] Menu Tamayo v18.5 - Detetive de NPCs e Comando Nativo Ativados!")
