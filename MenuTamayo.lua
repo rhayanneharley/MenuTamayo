@@ -19,7 +19,7 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -45, 0, 35); Title.Position = UDim2.new(0, 12, 0, 0); Title.BackgroundTransparency = 1
-Title.Text = "🔮 Menu Tamayo v18.1"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "🔮 Menu Tamayo v18.3"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold; Title.TextSize = 14; Title.TextXAlignment = Enum.TextXAlignment.Left; Title.Parent = MainFrame
 
 local MinimizeButton = Instance.new("TextButton")
@@ -151,7 +151,7 @@ ToggleSwitch.Activated:Connect(function()
     end
 end)
 
--- === SISTEMA DE COMBATE ===
+-- === SISTEMA DE COMBATE (ACCORDION) ===
 local CombateAtivo = false
 local SkillSpamAtivo = false
 local PadraoAtaque = "Combo (1-4)" 
@@ -283,7 +283,7 @@ local function CriarBotao(nome, layoutOrder, pag, funcaoLoop)
                 while LoopsAtivos[nome] do
                     local sucesso, erro = pcall(funcaoLoop)
                     if not sucesso then warn("["..nome.."] Erro: "..tostring(erro)) end
-                    task.wait(0.1)
+                    task.wait(0.5)
                 end
             end)
         end
@@ -307,42 +307,34 @@ local function LoopPets()
     end
 end
 
--- === LÓGICA INTELIGENTE DO TREM (CORRIGIDA) ===
+-- === LÓGICA DO AUTO TRAIN (TELEPORTE INTELIGENTE) ===
 local function LoopTrainFarm()
     local char = Players.LocalPlayer.Character
     if not char or not char:FindFirstChild("HumanoidRootPart") then return end
 
-    -- 1. Verifica inimigos APENAS na pasta de inimigos do trem (evita contar o próprio jogador)
+    -- 1. Verifica inimigos vivos
     local temInimigoVivo = false
     for _, obj in pairs(workspace:GetChildren()) do
-        -- Verifica se o objeto é um NPC e NÃO é o seu personagem
-        if obj:IsA("Model") and obj:FindFirstChild("Humanoid") and obj.Humanoid.Health > 0 and obj ~= char then
-            -- Verifica se o nome do modelo tem "NPC", "Enemy", "Mob" ou se não é um jogador
-            local isPlayer = Players:GetPlayerFromCharacter(obj)
-            if not isPlayer then
+        if obj:IsA("Model") and obj:FindFirstChild("Humanoid") and obj.Humanoid.Health > 0 then
+            if not Players:GetPlayerFromCharacter(obj) then
                 temInimigoVivo = true
                 break
             end
         end
     end
 
-    -- 2. Se não tiver inimigo vivo, avança
+    -- 2. Se o inimigo morreu, usa o comando nativo do jogo (GoNextTrainLevel)
     if not temInimigoVivo then
-        -- O teleporte para a posição base do mapa
-        char.HumanoidRootPart.CFrame = CFrame.new(-1009.036, -1952.459, -173.605)
-        task.wait(0.5) -- Espera meio segundo para o jogo registrar a posição
-
         local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
-        if RemoteEvents then
-            local GoNextTrainLevel = RemoteEvents:FindFirstChild("GoNextTrainLevel")
-            if GoNextTrainLevel then
-                -- Envia o comando
-                GoNextTrainLevel:FireServer(char.HumanoidRootPart.CFrame, char.HumanoidRootPart.CFrame)
-                print("[Train Farm] Inimigo derrotado! Avançando de nível...")
-            end
+        if RemoteEvents and RemoteEvents:FindFirstChild("GoNextTrainLevel") then
+            -- Usa as coordenadas EXATAS que capturamos nas suas fotos
+            local PosicaoAtual = CFrame.new(-1009.036, -1952.459, -173.605)
+            local ProximoNivel = CFrame.new(-1008.998, -1955.500, -98.368)
+            
+            -- Dispara o comando que o próprio jogo usa para avançar!
+            RemoteEvents.GoNextTrainLevel:FireServer(PosicaoAtual, ProximoNivel)
+            print("[Train Farm] Inimigo morto! Avançando via comando nativo...")
         end
-    else
-        print("[Train Farm] Inimigo vivo. Lutando...")
     end
 end
 
@@ -362,4 +354,4 @@ MinimizeButton.Activated:Connect(function()
     SpinPage.Visible = not Minimizado and AbaAtiva == "Spin"
 end)
 
-print("[Sucesso] Menu Tamayo v18.1 - Auto Train Consertado!")
+print("[Sucesso] Menu Tamayo v18.3 - Auto Train via Comando Nativo Ativado!")
