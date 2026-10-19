@@ -19,7 +19,7 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -45, 0, 35); Title.Position = UDim2.new(0, 12, 0, 0); Title.BackgroundTransparency = 1
-Title.Text = "🔮 Menu Tamayo v19.3"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "🔮 Menu Tamayo v19.4"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold; Title.TextSize = 14; Title.TextXAlignment = Enum.TextXAlignment.Left; Title.Parent = MainFrame
 
 local MinimizeButton = Instance.new("TextButton")
@@ -307,44 +307,55 @@ local function LoopPets()
     end
 end
 
--- === A LÓGICA DEFINITIVA DO TREM (CONTADOR E TELEPORTE REAL) ===
+-- === A LÓGICA DEFINITIVA DO TREM (POR DISTÂNCIA) ===
 local function LoopTrainFarm()
     local char = Players.LocalPlayer.Character
     if not char or not char:FindFirstChild("HumanoidRootPart") then return end
 
-    -- 1. Conta quantos Humanoids existem no mapa que NÃO são o jogador nem o pet
-    local inimigosCount = 0
+    -- Define a distância máxima (em studs) para considerar um NPC como "do trem"
+    local DISTANCIA_MAXIMA = 50 
+    local meuPersonagem = char
+    local posicaoMinha = meuPersonagem.HumanoidRootPart.Position
+
+    local temInimigoPerto = false
+
+    -- Varre o mapa procurando inimigos
     for _, obj in pairs(workspace:GetDescendants()) do
         if obj:IsA("Humanoid") and obj.Health > 0 then
             local model = obj.Parent
-            if model and not Players:GetPlayerFromCharacter(model) and not model:FindFirstChild("Pet") then
-                -- Ignora o seu próprio personagem
-                if model.Name ~= char.Name then
-                    inimigosCount = inimigosCount + 1
+            -- Verifica se não é você nem seu pet
+            if model and model.Name ~= char.Name and not Players:GetPlayerFromCharacter(model) then
+                -- Verifica se o inimigo tem uma posição e está perto de você
+                if model:FindFirstChild("HumanoidRootPart") then
+                    local distancia = (model.HumanoidRootPart.Position - posicaoMinha).Magnitude
+                    if distancia <= DISTANCIA_MAXIMA then
+                        temInimigoPerto = true
+                        break -- Achou um, não precisa continuar procurando
+                    end
                 end
             end
         end
     end
 
-    -- 2. Se a contagem de inimigos for 0, avança
-    if inimigosCount == 0 then
+    -- Se NÃO tem inimigo perto, teleporta e envia o comando
+    if not temInimigoPerto then
         local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
         if RemoteEvents then
             local EnterTrain = RemoteEvents:FindFirstChild("EnterTrain")
             if EnterTrain then
-                -- Teleporta o personagem para a coordenada do próximo vagão que você me mandou
+                -- Teleporta o personagem para a coordenada do próximo vagão
                 local ProximoVagaoPos = CFrame.new(-1008.998, -1955.500, -98.368)
                 char.HumanoidRootPart.CFrame = ProximoVagaoPos
                 
-                -- E também envia o comando por garantia
+                -- Envia o comando para o servidor aceitar
                 EnterTrain:FireServer(true, ProximoVagaoPos)
-                print("[Auto Train] Inimigos mortos! Teleportando para o próximo vagão...")
+                print("[Auto Train] Vagão limpo! Teleportando para o próximo...")
                 
-                task.wait(2) -- Espera 2 segundos para o jogo carregar o novo inimigo
+                task.wait(2.5) -- Espera o jogo carregar o novo inimigo
             end
         end
     else
-        print("[Auto Train] Inimigos vivos: " .. inimigosCount .. ". Lutando...")
+        print("[Auto Train] Inimigo perto! Lutando...")
     end
 end
 
@@ -364,4 +375,4 @@ MinimizeButton.Activated:Connect(function()
     SpinPage.Visible = not Minimizado and AbaAtiva == "Spin"
 end)
 
-print("[Sucesso] Menu Tamayo v19.3 - Contador de Inimigos Real!")
+print("[Sucesso] Menu Tamayo v19.4 - Sensor de Distância Ativado!")
