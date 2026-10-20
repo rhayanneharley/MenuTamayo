@@ -45,7 +45,7 @@ UserInputService.InputChanged:Connect(function(input)
 end)
 
 -- === MENU PRINCIPAL ===
-local AbaAtiva = "Spin" -- Deixei a aba Girar aberta por padrão
+local AbaAtiva = "Spin" 
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, 320, 0, 420); 
 MainFrame.Position = UDim2.new(0.5, -160, 0.3, -150)
@@ -55,7 +55,7 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -45, 0, 35); Title.Position = UDim2.new(0, 12, 0, 0); Title.BackgroundTransparency = 1
-Title.Text = "🔮 Menu Tamayo v21.1"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "🔮 Menu Tamayo v21.2"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold; Title.TextSize = 14; Title.TextXAlignment = Enum.TextXAlignment.Left; Title.Parent = MainFrame
 
 local MinimizeButton = Instance.new("TextButton")
@@ -332,15 +332,18 @@ local function LoopSpin()
     if RemoteEvents and RemoteEvents:FindFirstChild("Roulette") then RemoteEvents.Roulette:FireServer(true) end
 end
 
--- 2. Auto Oração (Gacha de Personagens)
+-- 2. Auto Oração (Gacha de Personagens) - ATUALIZADO
 local function LoopAutoPrayer()
     local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
     if RemoteEvents then
         local DrawRole = RemoteEvents:FindFirstChild("DrawRole")
         if DrawRole then
-            -- Dispara o comando de girar
-            DrawRole:FireServer(true)
-            print("[Auto Oração] Tentando girar o Gacha...")
+            -- A String em chinês que descobrimos nas fotos: "普通扭蛋机10"
+            local machineName = "\xE6\x99\xAE\xE9\x80\x9A\xE6\x89\xAD\xE8\x9B\x8B\xE6\x9C\xBA\x31\x30"
+            
+            -- Envia a tabela vazia, false, e o nome da máquina
+            DrawRole:FireServer({}, false, machineName)
+            print("[Auto Oração] Tentando girar Gacha (Máquina 10)...")
         end
     end
 end
@@ -390,7 +393,7 @@ CriarBotao("Auto Comprar Pet", 1, PetsPage, LoopPets)
 
 -- Aba Girar
 CriarBotao("Auto Spin Roleta", 1, SpinPage, LoopSpin)
-CriarBotao("Auto Oração (Gacha)", 2, SpinPage, LoopAutoPrayer) -- NOVO BOTÃO AQUI
+CriarBotao("Auto Oração (Gacha)", 2, SpinPage, LoopAutoPrayer)
 CriarBotao("Ignorar Animação", 3, SpinPage, nil)
 
 -- === LÓGICA DO MINIMIZAR ===
@@ -408,4 +411,4 @@ MinimizedIcon.Activated:Connect(function()
     SpinPage.Visible = (AbaAtiva == "Spin")
 end)
 
-print("[Sucesso] Menu Tamayo v21.1 - Auto Oração Adicionado!")
+print("[Sucesso] Menu Tamayo v21.2 - Auto Oração Corrigido!")
