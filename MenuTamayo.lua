@@ -6,20 +6,56 @@ local UserInputService = game:GetService("UserInputService")
 
 if PlayerGui:FindFirstChild("MenuTamayo") then PlayerGui.MenuTamayo:Destroy() end
 
-local Minimizado, AbaAtiva = false, "AutoKill"
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "MenuTamayo"; ScreenGui.ResetOnSpawn = false; ScreenGui.Parent = PlayerGui
 
+-- === BOTÃO FLUTUANTE (MINIMIZADO) ===
+local MinimizedIcon = Instance.new("TextButton")
+MinimizedIcon.Size = UDim2.new(0, 45, 0, 45)
+MinimizedIcon.Position = UDim2.new(0, 20, 0.5, -22)
+MinimizedIcon.BackgroundColor3 = Color3.fromRGB(30, 25, 35)
+MinimizedIcon.Text = "🔮"
+MinimizedIcon.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinimizedIcon.TextSize = 24
+MinimizedIcon.Font = Enum.Font.SourceSansBold
+MinimizedIcon.Visible = false
+MinimizedIcon.Parent = ScreenGui
+Instance.new("UICorner", MinimizedIcon).CornerRadius = UDim.new(1, 0) -- Deixa redondo
+
+-- Arrastar o Botão Flutuante
+local dragging, dragInput, dragStart, startPos
+MinimizedIcon.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = MinimizedIcon.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then dragging = false end
+        end)
+    end
+end)
+MinimizedIcon.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        MinimizedIcon.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+-- === MENU PRINCIPAL ===
+local AbaAtiva = "Combat"
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 380, 0, 420); 
-MainFrame.Position = UDim2.new(0.5, -190, 0.3, -150)
+MainFrame.Size = UDim2.new(0, 320, 0, 420); 
+MainFrame.Position = UDim2.new(0.5, -160, 0.3, -150)
 MainFrame.BackgroundColor3 = Color3.fromRGB(30, 25, 35); MainFrame.BorderSizePixel = 0
 MainFrame.Active = true; MainFrame.Draggable = true; MainFrame.Parent = ScreenGui
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -45, 0, 35); Title.Position = UDim2.new(0, 12, 0, 0); Title.BackgroundTransparency = 1
-Title.Text = "🔮 Menu Tamayo v20.5"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "🔮 Menu Tamayo v21.0"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold; Title.TextSize = 14; Title.TextXAlignment = Enum.TextXAlignment.Left; Title.Parent = MainFrame
 
 local MinimizeButton = Instance.new("TextButton")
@@ -41,14 +77,14 @@ local function CriarPagina()
     return Page
 end
 
-local AutoFarmPage, AutoKillPage, PetsPage, CombatPage, SpinPage = CriarPagina(), CriarPagina(), CriarPagina(), CriarPagina(), CriarPagina()
-AutoKillPage.Visible = true
+local AutoFarmPage, PetsPage, CombatPage, SpinPage = CriarPagina(), CriarPagina(), CriarPagina(), CriarPagina()
+CombatPage.Visible = true
 
 local function CriarAba(nome, pos, pag, idAba)
     local Btn = Instance.new("TextButton")
-    Btn.Size = UDim2.new(0, 65, 1, 0); Btn.Position = UDim2.new(0, pos, 0, 0)
-    Btn.BackgroundColor3 = (idAba == "AutoKill") and Color3.fromRGB(65, 55, 80) or Color3.fromRGB(40, 35, 45)
-    Btn.Text = nome; Btn.TextColor3 = (idAba == "AutoKill") and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(180, 180, 180)
+    Btn.Size = UDim2.new(0, 70, 1, 0); Btn.Position = UDim2.new(0, pos, 0, 0)
+    Btn.BackgroundColor3 = (idAba == "Combat") and Color3.fromRGB(65, 55, 80) or Color3.fromRGB(40, 35, 45)
+    Btn.Text = nome; Btn.TextColor3 = (idAba == "Combat") and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(180, 180, 180)
     Btn.Font = Enum.Font.SourceSansBold; Btn.TextSize = 10; Btn.Parent = TabsContainer
     Instance.new("UICorner", Btn).CornerRadius = UDim.new(0, 6)
     
@@ -58,16 +94,15 @@ local function CriarAba(nome, pos, pag, idAba)
             if b:IsA("TextButton") then b.BackgroundColor3 = Color3.fromRGB(40, 35, 45); b.TextColor3 = Color3.fromRGB(180, 180, 180) end
         end
         Btn.BackgroundColor3 = Color3.fromRGB(65, 55, 80); Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        AutoFarmPage.Visible, AutoKillPage.Visible, PetsPage.Visible, CombatPage.Visible, SpinPage.Visible = false, false, false, false, false
+        AutoFarmPage.Visible, PetsPage.Visible, CombatPage.Visible, SpinPage.Visible = false, false, false, false
         pag.Visible = true
     end)
 end
 
 CriarAba("Farm", 0, AutoFarmPage, "AutoFarm") 
-CriarAba("Auto Kill", 70, AutoKillPage, "AutoKill")
-CriarAba("Pets", 140, PetsPage, "Pets")
-CriarAba("Combat", 210, CombatPage, "Combat")
-CriarAba("Spin", 280, SpinPage, "Spin")
+CriarAba("Pets", 75, PetsPage, "Pets")
+CriarAba("Combat", 150, CombatPage, "Combat")
+CriarAba("Spin", 225, SpinPage, "Spin")
 
 -- === SISTEMA DE VELOCIDADE ===
 local SpeedEnabled = true 
@@ -334,60 +369,24 @@ local function LoopTrainFarm()
     end
 end
 
--- === A NOVA LÓGICA DE AUTO KILL (DANO REALISTA + ATAQUE) ===
-local function LoopAutoKill()
-    local char = Players.LocalPlayer.Character
-    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
-
-    local DISTANCIA_MAXIMA = 60 
-    local posicaoMinha = char.HumanoidRootPart.Position
-    local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
-    
-    if RemoteEvents then
-        local EnemyDamage = RemoteEvents:FindFirstChild("EnemyDamage")
-        local GeneralAttack = RemoteEvents:FindFirstChild("GeneralAttack")
-        
-        if EnemyDamage and GeneralAttack then
-            for _, obj in pairs(workspace:GetDescendants()) do
-                if obj:IsA("Humanoid") and obj.Health > 0 then
-                    local model = obj.Parent
-                    if model and model.Name ~= char.Name and not Players:GetPlayerFromCharacter(model) then
-                        if model:FindFirstChild("HumanoidRootPart") then
-                            local distancia = (model.HumanoidRootPart.Position - posicaoMinha).Magnitude
-                            if distancia <= DISTANCIA_MAXIMA then
-                                -- 1. Envia um ataque normal (para o jogo achar que foi a espada)
-                                GeneralAttack:FireServer(1)
-                                task.wait(0.05)
-                                
-                                -- 2. Envia o dano realista (250.000) 
-                                -- Se o seu dano atual for menor, tente mudar para 100000 ou 50000
-                                EnemyDamage:FireServer(2, 0, 250000, false, false)
-                                print("[Auto Kill] Atacando e enviando dano realista no NPC.")
-                                task.wait(0.2)
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end
-end
-
 CriarBotao("Auto Train Farm", 1, AutoFarmPage, LoopTrainFarm) 
 CriarBotao("Auto Comprar Pet", 1, PetsPage, LoopPets)
-CriarBotao("Ativar Auto Kill (Realista)", 1, AutoKillPage, LoopAutoKill)
 CriarBotao("Auto Spin Roleta", 1, SpinPage, LoopSpin)
 
+-- === LÓGICA DO MINIMIZAR (NOVO) ===
 MinimizeButton.Activated:Connect(function()
-    Minimizado = not Minimizado
-    MinimizeButton.Text = Minimizado and "+" or "-"
-    MainFrame.Size = Minimizado and UDim2.new(0, 380, 0, 35) or UDim2.new(0, 380, 0, 420)
-    TabsContainer.Visible = not Minimizado
-    AutoFarmPage.Visible = (not Minimizado and AbaAtiva == "AutoFarm")
-    AutoKillPage.Visible = (not Minimizado and AbaAtiva == "AutoKill")
-    PetsPage.Visible = (not Minimizado and AbaAtiva == "Pets")
-    CombatPage.Visible = (not Minimizado and AbaAtiva == "Combat")
-    SpinPage.Visible = not Minimizado and AbaAtiva == "Spin"
+    MainFrame.Visible = false
+    MinimizedIcon.Visible = true
 end)
 
-print("[Sucesso] Menu Tamayo v20.5 - Auto Kill Realista!")
+MinimizedIcon.Activated:Connect(function()
+    MainFrame.Visible = true
+    MinimizedIcon.Visible = false
+    -- Volta a aba ativa a ser visível
+    AutoFarmPage.Visible = (AbaAtiva == "AutoFarm")
+    PetsPage.Visible = (AbaAtiva == "Pets")
+    CombatPage.Visible = (AbaAtiva == "Combat")
+    SpinPage.Visible = (AbaAtiva == "Spin")
+end)
+
+print("[Sucesso] Menu Tamayo v21.0 - Visual Clean e Ícone Flutuante!")
