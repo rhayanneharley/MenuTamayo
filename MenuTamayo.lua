@@ -45,7 +45,7 @@ UserInputService.InputChanged:Connect(function(input)
 end)
 
 -- === MENU PRINCIPAL ===
-local AbaAtiva = "Combat"
+local AbaAtiva = "Spin" -- Deixei a aba Girar aberta por padrão
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, 320, 0, 420); 
 MainFrame.Position = UDim2.new(0.5, -160, 0.3, -150)
@@ -55,7 +55,7 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -45, 0, 35); Title.Position = UDim2.new(0, 12, 0, 0); Title.BackgroundTransparency = 1
-Title.Text = "🔮 Menu Tamayo v21.0"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "🔮 Menu Tamayo v21.1"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold; Title.TextSize = 14; Title.TextXAlignment = Enum.TextXAlignment.Left; Title.Parent = MainFrame
 
 local MinimizeButton = Instance.new("TextButton")
@@ -78,13 +78,13 @@ local function CriarPagina()
 end
 
 local AutoFarmPage, PetsPage, CombatPage, SpinPage = CriarPagina(), CriarPagina(), CriarPagina(), CriarPagina()
-CombatPage.Visible = true
+SpinPage.Visible = true
 
 local function CriarAba(nome, pos, pag, idAba)
     local Btn = Instance.new("TextButton")
     Btn.Size = UDim2.new(0, 70, 1, 0); Btn.Position = UDim2.new(0, pos, 0, 0)
-    Btn.BackgroundColor3 = (idAba == "Combat") and Color3.fromRGB(65, 55, 80) or Color3.fromRGB(40, 35, 45)
-    Btn.Text = nome; Btn.TextColor3 = (idAba == "Combat") and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(180, 180, 180)
+    Btn.BackgroundColor3 = (idAba == "Spin") and Color3.fromRGB(65, 55, 80) or Color3.fromRGB(40, 35, 45)
+    Btn.Text = nome; Btn.TextColor3 = (idAba == "Spin") and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(180, 180, 180)
     Btn.Font = Enum.Font.SourceSansBold; Btn.TextSize = 10; Btn.Parent = TabsContainer
     Instance.new("UICorner", Btn).CornerRadius = UDim.new(0, 6)
     
@@ -326,10 +326,25 @@ local function CriarBotao(nome, layoutOrder, pag, funcaoLoop)
     end)
 end
 
+-- 1. Auto Spin Roleta (Diário)
 local function LoopSpin()
     local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
     if RemoteEvents and RemoteEvents:FindFirstChild("Roulette") then RemoteEvents.Roulette:FireServer(true) end
 end
+
+-- 2. Auto Oração (Gacha de Personagens)
+local function LoopAutoPrayer()
+    local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
+    if RemoteEvents then
+        local DrawRole = RemoteEvents:FindFirstChild("DrawRole")
+        if DrawRole then
+            -- Dispara o comando de girar
+            DrawRole:FireServer(true)
+            print("[Auto Oração] Tentando girar o Gacha...")
+        end
+    end
+end
+
 local function LoopPets()
     local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
     if RemoteEvents then
@@ -369,11 +384,16 @@ local function LoopTrainFarm()
     end
 end
 
+-- PREENCHENDO OS BOTÕES
 CriarBotao("Auto Train Farm", 1, AutoFarmPage, LoopTrainFarm) 
 CriarBotao("Auto Comprar Pet", 1, PetsPage, LoopPets)
-CriarBotao("Auto Spin Roleta", 1, SpinPage, LoopSpin)
 
--- === LÓGICA DO MINIMIZAR (NOVO) ===
+-- Aba Girar
+CriarBotao("Auto Spin Roleta", 1, SpinPage, LoopSpin)
+CriarBotao("Auto Oração (Gacha)", 2, SpinPage, LoopAutoPrayer) -- NOVO BOTÃO AQUI
+CriarBotao("Ignorar Animação", 3, SpinPage, nil)
+
+-- === LÓGICA DO MINIMIZAR ===
 MinimizeButton.Activated:Connect(function()
     MainFrame.Visible = false
     MinimizedIcon.Visible = true
@@ -382,11 +402,10 @@ end)
 MinimizedIcon.Activated:Connect(function()
     MainFrame.Visible = true
     MinimizedIcon.Visible = false
-    -- Volta a aba ativa a ser visível
     AutoFarmPage.Visible = (AbaAtiva == "AutoFarm")
     PetsPage.Visible = (AbaAtiva == "Pets")
     CombatPage.Visible = (AbaAtiva == "Combat")
     SpinPage.Visible = (AbaAtiva == "Spin")
 end)
 
-print("[Sucesso] Menu Tamayo v21.0 - Visual Clean e Ícone Flutuante!")
+print("[Sucesso] Menu Tamayo v21.1 - Auto Oração Adicionado!")
