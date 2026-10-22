@@ -47,7 +47,7 @@ end)
 -- === MENU PRINCIPAL ===
 local AbaAtiva = "Spin" 
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 320, 0, 420); -- Voltou ao tamanho original
+MainFrame.Size = UDim2.new(0, 320, 0, 420); 
 MainFrame.Position = UDim2.new(0.5, -160, 0.3, -150)
 MainFrame.BackgroundColor3 = Color3.fromRGB(30, 25, 35); MainFrame.BorderSizePixel = 0
 MainFrame.Active = true; MainFrame.Draggable = true; MainFrame.Parent = ScreenGui
@@ -55,7 +55,7 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -45, 0, 35); Title.Position = UDim2.new(0, 12, 0, 0); Title.BackgroundTransparency = 1
-Title.Text = "🔮 Menu Tamayo v22.1"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "🔮 Menu Tamayo v22.3"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold; Title.TextSize = 14; Title.TextXAlignment = Enum.TextXAlignment.Left; Title.Parent = MainFrame
 
 local MinimizeButton = Instance.new("TextButton")
@@ -414,28 +414,33 @@ BtnOracao.Activated:Connect(function()
     end
 end)
 
--- === AUTO CHEST (MOVIDO PARA A ABA GIRAR) ===
-local BauComumString = "\xE5\xAE\x9D\xE7\xAE\xB1\xE7\xB3\xBB\xE7\xBB\x9F/\xE5\xBC\x80\xE5\xAE\x9D\xE7\xAE\xB1/\xE5\xBC\x80\xE5\xAE\x9D\xE7\xAE\xB1 1? \xE5\xA4\x9A\xE6\xAC\xA1\xE8\xB4\xAD\xE4\xB9\xB0"
-local BauIncomumString = "\xE5\xAE\x9D\xE7\xAE\xB1\xE7\xB3\xBB\xE7\xBB\x9F/\xE5\xBC\x80\xE5\xAE\x9D\xE7\xAE\xB1/\xE5\xAE\x9D\xE7\xAE\xB1 2? \xE5\xA4\x9A\xE6\xAC\xA1\xE8\xB4\xAD\xE4\xB9\xB0"
+-- === AUTO CHEST (FECHANDO A TELA PRIMEIRO) ===
+local BauComumString = "/宝箱系统/开宝箱/开宝箱1?多次购买"
 
-local function LoopAutoChestComum()
-    local WuKong = ReplicatedStorage:FindFirstChild("WuKong")
-    if WuKong then
-        local RemoteAction = WuKong:FindFirstChild("RemoteActionFunction")
-        if RemoteAction then
-            RemoteAction:InvokeServer(BauComumString, 10)
-            print("[Auto Chest] Abrindo Baú Comum...")
+-- Função para fechar qualquer tela que atrapalhe (Inventário, Baús, etc)
+local function FecharTelas()
+    for _, gui in pairs(PlayerGui:GetChildren()) do
+        if gui:IsA("ScreenGui") and gui.Enabled then
+            local nome = string.lower(gui.Name)
+            if string.find(nome, "inventory") or string.find(nome, "chest") or string.find(nome, "bag") or string.find(nome, "baú") then
+                gui.Enabled = false
+            end
         end
     end
 end
 
-local function LoopAutoChestIncomum()
+local function LoopAutoChestComum()
+    -- 1. Fecha a tela do inventário
+    FecharTelas()
+    task.wait(0.2) -- Espera a tela fechar de verdade
+    
+    -- 2. Manda o comando de abrir
     local WuKong = ReplicatedStorage:FindFirstChild("WuKong")
     if WuKong then
         local RemoteAction = WuKong:FindFirstChild("RemoteActionFunction")
         if RemoteAction then
-            RemoteAction:InvokeServer(BauIncomumString, 10)
-            print("[Auto Chest] Abrindo Baú Incomum...")
+            RemoteAction:InvokeServer(BauComumString, 1) -- Abre 1 por vez para ser mais seguro
+            print("[Auto Chest] Fechou a tela e tentou abrir Baú Comum.")
         end
     end
 end
@@ -479,13 +484,10 @@ local function LoopTrainFarm()
     end
 end
 
--- PREENCHENDO OS BOTÕES DA ABA SPIN
+-- PREENCHENDO OS BOTÕES
 CriarBotao("Auto Spin Roleta", 1, SpinPage, LoopSpin)
--- O botão da Oração já foi criado acima (LayoutOrder 2)
-CriarBotao("Auto Abrir Baú Comum", 3, SpinPage, LoopAutoChestComum, 0.5) -- MOVIDO PARA CÁ
-CriarBotao("Auto Abrir Baú Incomum", 4, SpinPage, LoopAutoChestIncomum, 0.5) -- MOVIDO PARA CÁ
+CriarBotao("Auto Abrir Baú Comum", 3, SpinPage, LoopAutoChestComum, 0.5)
 
--- OUTRAS ABAS
 CriarBotao("Auto Train Farm", 1, AutoFarmPage, LoopTrainFarm) 
 CriarBotao("Auto Comprar Pet", 1, PetsPage, LoopPets)
 
@@ -504,4 +506,4 @@ MinimizedIcon.Activated:Connect(function()
     SpinPage.Visible = (AbaAtiva == "Spin")
 end)
 
-print("[Sucesso] Menu Tamayo v22.1 - Auto Chest na Aba Girar!")
+print("[Sucesso] Menu Tamayo v22.3 - Auto Chest com Fechamento de Tela!")
