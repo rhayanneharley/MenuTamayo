@@ -55,7 +55,7 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -45, 0, 35); Title.Position = UDim2.new(0, 12, 0, 0); Title.BackgroundTransparency = 1
-Title.Text = "🔮 Menu Tamayo v21.4"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "🔮 Menu Tamayo v21.5"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold; Title.TextSize = 14; Title.TextXAlignment = Enum.TextXAlignment.Left; Title.Parent = MainFrame
 
 local MinimizeButton = Instance.new("TextButton")
@@ -334,17 +334,15 @@ local function LoopSpin()
     if RemoteEvents and RemoteEvents:FindFirstChild("Roulette") then RemoteEvents.Roulette:FireServer(true) end
 end
 
--- 2. Auto Oração (Gacha de Personagens) COM TELEPORTE E FECHAR TELA
+-- 2. Auto Oração (Gacha de Personagens) RÁPIDO
 local PRAYER_CFRAME = CFrame.new(89.2434158, 39.1334839, -457.973114, -0.998856723, -5.14096214e-08, 0.0478048697, -4.8002299e-08, 1, 7.24237097e-08, -0.0478048697, 7.00461626e-08, -0.998856723)
 
--- Função para fechar a tela do Gacha à força
 local function FecharTelaGacha()
     for _, gui in pairs(PlayerGui:GetChildren()) do
         if gui:IsA("ScreenGui") then
             local nome = string.lower(gui.Name)
-            -- Procura por telas que tenham "Draw", "Gacha", "Role", "Pray" no nome
             if string.find(nome, "draw") or string.find(nome, "gacha") or string.find(nome, "role") or string.find(nome, "pray") then
-                gui.Enabled = false -- Desativa a tela
+                gui.Enabled = false
             end
         end
     end
@@ -360,25 +358,24 @@ local function LoopAutoPrayer()
     if RemoteEvents then
         local DrawRole = RemoteEvents:FindFirstChild("DrawRole")
         if DrawRole then
-            -- 1. Teleporta para a Plataforma
+            -- 1. Teleporta (rápido)
             char.HumanoidRootPart.CFrame = PRAYER_CFRAME
-            task.wait(0.5) 
+            task.wait(0.2) 
             
-            -- 2. Envia o comando de girar
+            -- 2. Gira (rápido)
             local machineName = "\xE6\x99\xAE\xE9\x80\x9A\xE6\x89\xAD\xE8\x9B\x8B\xE6\x9C\xBA\x31\x30"
             DrawRole:FireServer({}, false, machineName)
-            print("[Auto Oração] Teleportado, girando Gacha...")
+            print("[Auto Oração] Girando...")
             
-            -- 3. Espera a animação rodar
-            task.wait(3) 
+            -- 3. Espera só 1.5s (metade do tempo anterior)
+            task.wait(1.5) 
             
-            -- 4. FORÇA O FECHAMENTO DA TELA DO GACHA
+            -- 4. Fecha tela e volta
             FecharTelaGacha()
-            task.wait(0.2) -- Espera a tela fechar
+            task.wait(0.1) 
             
-            -- 5. Volta para o lugar original
             char.HumanoidRootPart.CFrame = originalCFrame
-            print("[Auto Oração] Tela fechada e voltando para a posição original...")
+            print("[Auto Oração] Voltando...")
         end
     end
 end
@@ -428,7 +425,8 @@ CriarBotao("Auto Comprar Pet", 1, PetsPage, LoopPets)
 
 -- Aba Girar
 CriarBotao("Auto Spin Roleta", 1, SpinPage, LoopSpin)
-CriarBotao("Auto Oração (Teleporte)", 2, SpinPage, LoopAutoPrayer, 5) -- 5 segundos entre tentativas
+-- Aqui está a mudança principal: tempo de espera caiu de 5 para 2 segundos!
+CriarBotao("Auto Oração (Rápido)", 2, SpinPage, LoopAutoPrayer, 2) 
 CriarBotao("Ignorar Animação", 3, SpinPage, nil)
 
 -- === LÓGICA DO MINIMIZAR ===
@@ -446,4 +444,4 @@ MinimizedIcon.Activated:Connect(function()
     SpinPage.Visible = (AbaAtiva == "Spin")
 end)
 
-print("[Sucesso] Menu Tamayo v21.4 - Auto Oração com Fechar Tela!")
+print("[Sucesso] Menu Tamayo v21.5 - Auto Oração Rápido!")
