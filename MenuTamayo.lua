@@ -20,7 +20,7 @@ MinimizedIcon.TextSize = 24
 MinimizedIcon.Font = Enum.Font.SourceSansBold
 MinimizedIcon.Visible = false
 MinimizedIcon.Parent = ScreenGui
-Instance.new("UICorner", MinimizedIcon).CornerRadius = UDim.new(1, 0) -- Deixa redondo
+Instance.new("UICorner", MinimizedIcon).CornerRadius = UDim.new(1, 0)
 
 -- Arrastar o Botão Flutuante
 local dragging, dragInput, dragStart, startPos
@@ -55,7 +55,7 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -45, 0, 35); Title.Position = UDim2.new(0, 12, 0, 0); Title.BackgroundTransparency = 1
-Title.Text = "🔮 Menu Tamayo v21.2"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "🔮 Menu Tamayo v21.3"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold; Title.TextSize = 14; Title.TextXAlignment = Enum.TextXAlignment.Left; Title.Parent = MainFrame
 
 local MinimizeButton = Instance.new("TextButton")
@@ -300,7 +300,7 @@ end)
 
 -- === OUTRAS ABAS ===
 local LoopsAtivos = {}
-local function CriarBotao(nome, layoutOrder, pag, funcaoLoop)
+local function CriarBotao(nome, layoutOrder, pag, funcaoLoop, tempoEspera)
     local Btn = Instance.new("TextButton")
     Btn.Size = UDim2.new(1, 0, 0, 35); Btn.LayoutOrder = layoutOrder
     Btn.BackgroundColor3 = Color3.fromRGB(180, 50, 50); Btn.Text = nome .. ": DESLIGADO"
@@ -309,6 +309,8 @@ local function CriarBotao(nome, layoutOrder, pag, funcaoLoop)
     
     local estado = false
     LoopsAtivos[nome] = false
+    local espera = tempoEspera or 1.5
+    
     Btn.Activated:Connect(function()
         estado = not estado
         LoopsAtivos[nome] = estado
@@ -319,7 +321,7 @@ local function CriarBotao(nome, layoutOrder, pag, funcaoLoop)
                 while LoopsAtivos[nome] do
                     local sucesso, erro = pcall(funcaoLoop)
                     if not sucesso then warn("["..nome.."] Erro: "..tostring(erro)) end
-                    task.wait(1.5) 
+                    task.wait(espera) 
                 end
             end)
         end
@@ -332,18 +334,34 @@ local function LoopSpin()
     if RemoteEvents and RemoteEvents:FindFirstChild("Roulette") then RemoteEvents.Roulette:FireServer(true) end
 end
 
--- 2. Auto Oração (Gacha de Personagens) - ATUALIZADO
+-- 2. Auto Oração (Gacha de Personagens) COM TELEPORTE
+-- Coordenadas exatas que você me mandou
+local PRAYER_CFRAME = CFrame.new(89.2434158, 39.1334839, -457.973114, -0.998856723, -5.14096214e-08, 0.0478048697, -4.8002299e-08, 1, 7.24237097e-08, -0.0478048697, 7.00461626e-08, -0.998856723)
+
 local function LoopAutoPrayer()
+    local char = Players.LocalPlayer.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    
+    local originalCFrame = char.HumanoidRootPart.CFrame
     local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
+    
     if RemoteEvents then
         local DrawRole = RemoteEvents:FindFirstChild("DrawRole")
         if DrawRole then
-            -- A String em chinês que descobrimos nas fotos: "普通扭蛋机10"
-            local machineName = "\xE6\x99\xAE\xE9\x80\x9A\xE6\x89\xAD\xE8\x9B\x8B\xE6\x9C\xBA\x31\x30"
+            -- 1. Teleporta para a Plataforma
+            char.HumanoidRootPart.CFrame = PRAYER_CFRAME
+            task.wait(0.5) -- Espera o servidor registrar a nova posição
             
-            -- Envia a tabela vazia, false, e o nome da máquina
+            -- 2. Envia o comando de girar (Máquina 10)
+            local machineName = "\xE6\x99\xAE\xE9\x80\x9A\xE6\x89\xAD\xE8\x9B\x8B\xE6\x9C\xBA\x31\x30"
             DrawRole:FireServer({}, false, machineName)
-            print("[Auto Oração] Tentando girar Gacha (Máquina 10)...")
+            print("[Auto Oração] Teleportado, girando Gacha...")
+            
+            task.wait(1.5) -- Espera a animação e o servidor processarem
+            
+            -- 3. Volta para o lugar original
+            char.HumanoidRootPart.CFrame = originalCFrame
+            print("[Auto Oração] Voltando para a posição original...")
         end
     end
 end
@@ -393,7 +411,8 @@ CriarBotao("Auto Comprar Pet", 1, PetsPage, LoopPets)
 
 -- Aba Girar
 CriarBotao("Auto Spin Roleta", 1, SpinPage, LoopSpin)
-CriarBotao("Auto Oração (Gacha)", 2, SpinPage, LoopAutoPrayer)
+-- Coloquei um tempo de espera de 60 segundos para o Teleporte não spammar o servidor
+CriarBotao("Auto Oração (Teleporte)", 2, SpinPage, LoopAutoPrayer, 60) 
 CriarBotao("Ignorar Animação", 3, SpinPage, nil)
 
 -- === LÓGICA DO MINIMIZAR ===
@@ -411,4 +430,4 @@ MinimizedIcon.Activated:Connect(function()
     SpinPage.Visible = (AbaAtiva == "Spin")
 end)
 
-print("[Sucesso] Menu Tamayo v21.2 - Auto Oração Corrigido!")
+print("[Sucesso] Menu Tamayo v21.3 - Auto Oração com Teleporte Ativado!")
