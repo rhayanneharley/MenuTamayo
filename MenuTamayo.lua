@@ -47,7 +47,7 @@ end)
 -- === MENU PRINCIPAL ===
 local AbaAtiva = "Spin" 
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 320, 0, 420); 
+MainFrame.Size = UDim2.new(0, 320, 0, 420); -- Voltou ao tamanho original
 MainFrame.Position = UDim2.new(0.5, -160, 0.3, -150)
 MainFrame.BackgroundColor3 = Color3.fromRGB(30, 25, 35); MainFrame.BorderSizePixel = 0
 MainFrame.Active = true; MainFrame.Draggable = true; MainFrame.Parent = ScreenGui
@@ -55,7 +55,7 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -45, 0, 35); Title.Position = UDim2.new(0, 12, 0, 0); Title.BackgroundTransparency = 1
-Title.Text = "🔮 Menu Tamayo v21.8"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "🔮 Menu Tamayo v22.1"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold; Title.TextSize = 14; Title.TextXAlignment = Enum.TextXAlignment.Left; Title.Parent = MainFrame
 
 local MinimizeButton = Instance.new("TextButton")
@@ -334,7 +334,7 @@ local function LoopSpin()
     if RemoteEvents and RemoteEvents:FindFirstChild("Roulette") then RemoteEvents.Roulette:FireServer(true) end
 end
 
--- 2. A NOVA LÓGICA DA AUTO ORAÇÃO (ESTILO FAZENDA TURBO)
+-- 2. Auto Oração (Gacha de Personagens) ESTILO FAZENDA TURBO
 local PRAYER_CFRAME = CFrame.new(89.2434158, 39.1334839, -457.973114, -0.998856723, -5.14096214e-08, 0.0478048697, -4.8002299e-08, 1, 7.24237097e-08, -0.0478048697, 7.00461626e-08, -0.998856723)
 local PosicaoOriginalOracao = nil 
 
@@ -382,14 +382,12 @@ local function LoopAutoPrayer()
             local machineName = "\xE6\x99\xAE\xE9\x80\x9A\xE6\x89\xAD\xE8\x9B\x8B\xE6\x9C\xBA\x31\x30"
             DrawRole:FireServer({}, false, machineName)
             print("[Auto Oração] Girando...")
-            -- REDUZIDO DE 2.5 PARA 1.5 SEGUNDOS AQUI
             task.wait(1.5) 
             FecharTelaGacha()
         end
     end
 end
 
--- Sistema especial de botão para a Oração
 local BtnOracao = Instance.new("TextButton")
 BtnOracao.Size = UDim2.new(1, 0, 0, 35); BtnOracao.LayoutOrder = 2
 BtnOracao.BackgroundColor3 = Color3.fromRGB(180, 50, 50); BtnOracao.Text = "Auto Oração: DESLIGADO"
@@ -404,20 +402,43 @@ BtnOracao.Activated:Connect(function()
     
     if OracaoLigada then
         IniciarOracao()
-        
         task.spawn(function()
             while OracaoLigada do
                 local sucesso, erro = pcall(LoopAutoPrayer)
                 if not sucesso then warn("[Auto Oração] Erro: "..tostring(erro)) end
-                -- REDUZIDO O DELAY ENTRE OS GIROS DE 0.5 PARA 0.1
                 task.wait(0.1) 
             end
         end)
-        
     else
         PararOracao()
     end
 end)
+
+-- === AUTO CHEST (MOVIDO PARA A ABA GIRAR) ===
+local BauComumString = "\xE5\xAE\x9D\xE7\xAE\xB1\xE7\xB3\xBB\xE7\xBB\x9F/\xE5\xBC\x80\xE5\xAE\x9D\xE7\xAE\xB1/\xE5\xBC\x80\xE5\xAE\x9D\xE7\xAE\xB1 1? \xE5\xA4\x9A\xE6\xAC\xA1\xE8\xB4\xAD\xE4\xB9\xB0"
+local BauIncomumString = "\xE5\xAE\x9D\xE7\xAE\xB1\xE7\xB3\xBB\xE7\xBB\x9F/\xE5\xBC\x80\xE5\xAE\x9D\xE7\xAE\xB1/\xE5\xAE\x9D\xE7\xAE\xB1 2? \xE5\xA4\x9A\xE6\xAC\xA1\xE8\xB4\xAD\xE4\xB9\xB0"
+
+local function LoopAutoChestComum()
+    local WuKong = ReplicatedStorage:FindFirstChild("WuKong")
+    if WuKong then
+        local RemoteAction = WuKong:FindFirstChild("RemoteActionFunction")
+        if RemoteAction then
+            RemoteAction:InvokeServer(BauComumString, 10)
+            print("[Auto Chest] Abrindo Baú Comum...")
+        end
+    end
+end
+
+local function LoopAutoChestIncomum()
+    local WuKong = ReplicatedStorage:FindFirstChild("WuKong")
+    if WuKong then
+        local RemoteAction = WuKong:FindFirstChild("RemoteActionFunction")
+        if RemoteAction then
+            RemoteAction:InvokeServer(BauIncomumString, 10)
+            print("[Auto Chest] Abrindo Baú Incomum...")
+        end
+    end
+end
 
 local function LoopPets()
     local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
@@ -458,11 +479,15 @@ local function LoopTrainFarm()
     end
 end
 
--- PREENCHENDO OS BOTÕES
+-- PREENCHENDO OS BOTÕES DA ABA SPIN
 CriarBotao("Auto Spin Roleta", 1, SpinPage, LoopSpin)
+-- O botão da Oração já foi criado acima (LayoutOrder 2)
+CriarBotao("Auto Abrir Baú Comum", 3, SpinPage, LoopAutoChestComum, 0.5) -- MOVIDO PARA CÁ
+CriarBotao("Auto Abrir Baú Incomum", 4, SpinPage, LoopAutoChestIncomum, 0.5) -- MOVIDO PARA CÁ
+
+-- OUTRAS ABAS
 CriarBotao("Auto Train Farm", 1, AutoFarmPage, LoopTrainFarm) 
 CriarBotao("Auto Comprar Pet", 1, PetsPage, LoopPets)
-CriarBotao("Ignorar Animação", 3, SpinPage, nil)
 
 -- === LÓGICA DO MINIMIZAR ===
 MinimizeButton.Activated:Connect(function()
@@ -479,4 +504,4 @@ MinimizedIcon.Activated:Connect(function()
     SpinPage.Visible = (AbaAtiva == "Spin")
 end)
 
-print("[Sucesso] Menu Tamayo v21.8 - Auto Oração Turbo!")
+print("[Sucesso] Menu Tamayo v22.1 - Auto Chest na Aba Girar!")
