@@ -55,7 +55,7 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -45, 0, 35); Title.Position = UDim2.new(0, 12, 0, 0); Title.BackgroundTransparency = 1
-Title.Text = "🔮 Menu Tamayo v21.7"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "🔮 Menu Tamayo v21.8"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold; Title.TextSize = 14; Title.TextXAlignment = Enum.TextXAlignment.Left; Title.Parent = MainFrame
 
 local MinimizeButton = Instance.new("TextButton")
@@ -334,9 +334,9 @@ local function LoopSpin()
     if RemoteEvents and RemoteEvents:FindFirstChild("Roulette") then RemoteEvents.Roulette:FireServer(true) end
 end
 
--- 2. A NOVA LÓGICA DA AUTO ORAÇÃO (ESTILO FAZENDA)
+-- 2. A NOVA LÓGICA DA AUTO ORAÇÃO (ESTILO FAZENDA TURBO)
 local PRAYER_CFRAME = CFrame.new(89.2434158, 39.1334839, -457.973114, -0.998856723, -5.14096214e-08, 0.0478048697, -4.8002299e-08, 1, 7.24237097e-08, -0.0478048697, 7.00461626e-08, -0.998856723)
-local PosicaoOriginalOracao = nil -- Variável para guardar onde você estava
+local PosicaoOriginalOracao = nil 
 
 local function FecharTelaGacha()
     for i = 1, 10 do
@@ -355,18 +355,18 @@ end
 local function IniciarOracao()
     local char = Players.LocalPlayer.Character
     if not char or not char:FindFirstChild("HumanoidRootPart") then return end
-    PosicaoOriginalOracao = char.HumanoidRootPart.CFrame -- Salva onde você estava
-    char.HumanoidRootPart.CFrame = PRAYER_CFRAME -- Vai pra plataforma
+    PosicaoOriginalOracao = char.HumanoidRootPart.CFrame
+    char.HumanoidRootPart.CFrame = PRAYER_CFRAME
     task.wait(0.5) 
 end
 
 local function PararOracao()
     local char = Players.LocalPlayer.Character
     if not char or not char:FindFirstChild("HumanoidRootPart") then return end
-    FecharTelaGacha() -- Fecha a tela primeiro para liberar o personagem
+    FecharTelaGacha() 
     task.wait(0.2)
     if PosicaoOriginalOracao then
-        char.HumanoidRootPart.CFrame = PosicaoOriginalOracao -- Volta pro lugar
+        char.HumanoidRootPart.CFrame = PosicaoOriginalOracao
         PosicaoOriginalOracao = nil
     end
 end
@@ -382,13 +382,14 @@ local function LoopAutoPrayer()
             local machineName = "\xE6\x99\xAE\xE9\x80\x9A\xE6\x89\xAD\xE8\x9B\x8B\xE6\x9C\xBA\x31\x30"
             DrawRole:FireServer({}, false, machineName)
             print("[Auto Oração] Girando...")
-            task.wait(2.5) -- Tempo pra animação rodar sem travar
+            -- REDUZIDO DE 2.5 PARA 1.5 SEGUNDOS AQUI
+            task.wait(1.5) 
             FecharTelaGacha()
         end
     end
 end
 
--- Sistema especial de botão para a Oração (que tem o Ligar/Desligar diferente)
+-- Sistema especial de botão para a Oração
 local BtnOracao = Instance.new("TextButton")
 BtnOracao.Size = UDim2.new(1, 0, 0, 35); BtnOracao.LayoutOrder = 2
 BtnOracao.BackgroundColor3 = Color3.fromRGB(180, 50, 50); BtnOracao.Text = "Auto Oração: DESLIGADO"
@@ -402,19 +403,19 @@ BtnOracao.Activated:Connect(function()
     BtnOracao.BackgroundColor3 = OracaoLigada and Color3.fromRGB(50, 150, 80) or Color3.fromRGB(180, 50, 50)
     
     if OracaoLigada then
-        IniciarOracao() -- Teleporta e salva a posição
+        IniciarOracao()
         
-        -- Inicia o loop de girar
         task.spawn(function()
             while OracaoLigada do
                 local sucesso, erro = pcall(LoopAutoPrayer)
                 if not sucesso then warn("[Auto Oração] Erro: "..tostring(erro)) end
-                task.wait(0.5) -- Pequeno delay entre os comandos
+                -- REDUZIDO O DELAY ENTRE OS GIROS DE 0.5 PARA 0.1
+                task.wait(0.1) 
             end
         end)
         
     else
-        PararOracao() -- Fecha a tela e volta
+        PararOracao()
     end
 end)
 
@@ -457,10 +458,8 @@ local function LoopTrainFarm()
     end
 end
 
--- PREENCHENDO OS BOTÕES (Ordem da Aba Spin)
+-- PREENCHENDO OS BOTÕES
 CriarBotao("Auto Spin Roleta", 1, SpinPage, LoopSpin)
--- O botão da Oração foi criado manualmente acima para ter a lógica de Salvar/Voltar
-
 CriarBotao("Auto Train Farm", 1, AutoFarmPage, LoopTrainFarm) 
 CriarBotao("Auto Comprar Pet", 1, PetsPage, LoopPets)
 CriarBotao("Ignorar Animação", 3, SpinPage, nil)
@@ -480,4 +479,4 @@ MinimizedIcon.Activated:Connect(function()
     SpinPage.Visible = (AbaAtiva == "Spin")
 end)
 
-print("[Sucesso] Menu Tamayo v21.7 - Auto Oração Estilo Fazenda!")
+print("[Sucesso] Menu Tamayo v21.8 - Auto Oração Turbo!")
