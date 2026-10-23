@@ -55,7 +55,7 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -45, 0, 35); Title.Position = UDim2.new(0, 12, 0, 0); Title.BackgroundTransparency = 1
-Title.Text = "🔮 Menu Tamayo v22.3"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "🔮 Menu Tamayo v23.0"; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold; Title.TextSize = 14; Title.TextXAlignment = Enum.TextXAlignment.Left; Title.Parent = MainFrame
 
 local MinimizeButton = Instance.new("TextButton")
@@ -414,49 +414,6 @@ BtnOracao.Activated:Connect(function()
     end
 end)
 
--- === AUTO CHEST (CORRIGIDO E OTIMIZADO) ===
-local BauComumString = "/宝箱系统/开宝箱/开宝箱1?多次购买"
-
--- Função para fechar a tela de resultado do baú de forma limpa
-local function FecharTelaBau()
-    for _, gui in pairs(PlayerGui:GetChildren()) do
-        if gui:IsA("ScreenGui") and gui.Enabled then
-            local nome = string.lower(gui.Name)
-            -- Fecha apenas a tela de recompensa/resultado
-            if string.find(nome, "reward") or string.find(nome, "result") or string.find(nome, "chest") or string.find(nome, "baú") then
-                gui.Enabled = false
-            end
-        end
-    end
-end
-
-local function LoopAutoChestComum()
-    -- 1. Localiza o Remote correto
-    local WuKong = ReplicatedStorage:FindFirstChild("WuKong")
-    if not WuKong then return end
-    
-    local RemoteAction = WuKong:FindFirstChild("RemoteActionFunction")
-    if not RemoteAction then return end
-
-    -- 2. Invoca a função com os argumentos corretos
-    local sucesso, resultado = pcall(function()
-        return RemoteAction:InvokeServer(BauComumString, 1) -- Abre 1 por vez
-    end)
-
-    if sucesso then
-        print("[Auto Chest] Baú aberto com sucesso!")
-        -- 3. Espera um curto período para o servidor processar e mostrar a recompensa
-        task.wait(0.5) 
-        -- 4. Fecha a tela de recompensa
-        FecharTelaBau()
-    else
-        warn("[Auto Chest] Falha ao abrir baú: " .. tostring(resultado))
-    end
-    
-    -- Pequeno delay para não sobrecarregar o servidor
-    task.wait(0.2)
-end
-
 local function LoopPets()
     local RemoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
     if RemoteEvents then
@@ -496,9 +453,8 @@ local function LoopTrainFarm()
     end
 end
 
--- PREENCHENDO OS BOTÕES
+-- PREENCHENDO OS BOTÕES (SEM O AUTO CHEST)
 CriarBotao("Auto Spin Roleta", 1, SpinPage, LoopSpin)
-CriarBotao("Auto Abrir Baú Comum", 3, SpinPage, LoopAutoChestComum, 0.5)
 
 CriarBotao("Auto Train Farm", 1, AutoFarmPage, LoopTrainFarm) 
 CriarBotao("Auto Comprar Pet", 1, PetsPage, LoopPets)
@@ -518,4 +474,4 @@ MinimizedIcon.Activated:Connect(function()
     SpinPage.Visible = (AbaAtiva == "Spin")
 end)
 
-print("[Sucesso] Menu Tamayo v22.3 - Auto Chest com Fechamento de Tela Corrigido!")
+print("[Sucesso] Menu Tamayo v23.0 - Versão Final Clean!")
