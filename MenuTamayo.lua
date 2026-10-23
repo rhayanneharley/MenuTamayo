@@ -414,15 +414,16 @@ BtnOracao.Activated:Connect(function()
     end
 end)
 
--- === AUTO CHEST (FECHANDO A TELA PRIMEIRO) ===
+-- === AUTO CHEST (CORRIGIDO E OTIMIZADO) ===
 local BauComumString = "/宝箱系统/开宝箱/开宝箱1?多次购买"
 
--- Função para fechar qualquer tela que atrapalhe (Inventário, Baús, etc)
-local function FecharTelas()
+-- Função para fechar a tela de resultado do baú de forma limpa
+local function FecharTelaBau()
     for _, gui in pairs(PlayerGui:GetChildren()) do
         if gui:IsA("ScreenGui") and gui.Enabled then
             local nome = string.lower(gui.Name)
-            if string.find(nome, "inventory") or string.find(nome, "chest") or string.find(nome, "bag") or string.find(nome, "baú") then
+            -- Fecha apenas a tela de recompensa/resultado
+            if string.find(nome, "reward") or string.find(nome, "result") or string.find(nome, "chest") or string.find(nome, "baú") then
                 gui.Enabled = false
             end
         end
@@ -430,19 +431,30 @@ local function FecharTelas()
 end
 
 local function LoopAutoChestComum()
-    -- 1. Fecha a tela do inventário
-    FecharTelas()
-    task.wait(0.2) -- Espera a tela fechar de verdade
-    
-    -- 2. Manda o comando de abrir
+    -- 1. Localiza o Remote correto
     local WuKong = ReplicatedStorage:FindFirstChild("WuKong")
-    if WuKong then
-        local RemoteAction = WuKong:FindFirstChild("RemoteActionFunction")
-        if RemoteAction then
-            RemoteAction:InvokeServer(BauComumString, 1) -- Abre 1 por vez para ser mais seguro
-            print("[Auto Chest] Fechou a tela e tentou abrir Baú Comum.")
-        end
+    if not WuKong then return end
+    
+    local RemoteAction = WuKong:FindFirstChild("RemoteActionFunction")
+    if not RemoteAction then return end
+
+    -- 2. Invoca a função com os argumentos corretos
+    local sucesso, resultado = pcall(function()
+        return RemoteAction:InvokeServer(BauComumString, 1) -- Abre 1 por vez
+    end)
+
+    if sucesso then
+        print("[Auto Chest] Baú aberto com sucesso!")
+        -- 3. Espera um curto período para o servidor processar e mostrar a recompensa
+        task.wait(0.5) 
+        -- 4. Fecha a tela de recompensa
+        FecharTelaBau()
+    else
+        warn("[Auto Chest] Falha ao abrir baú: " .. tostring(resultado))
     end
+    
+    -- Pequeno delay para não sobrecarregar o servidor
+    task.wait(0.2)
 end
 
 local function LoopPets()
@@ -506,4 +518,4 @@ MinimizedIcon.Activated:Connect(function()
     SpinPage.Visible = (AbaAtiva == "Spin")
 end)
 
-print("[Sucesso] Menu Tamayo v22.3 - Auto Chest com Fechamento de Tela!")
+print("[Sucesso] Menu Tamayo v22.3 - Auto Chest com Fechamento de Tela Corrigido!")
